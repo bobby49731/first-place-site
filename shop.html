@@ -143,6 +143,11 @@
     height:220px;
     object-fit:cover;
     display:block;
+    cursor:pointer;
+    transition:filter 0.2s ease;
+  }
+  .joke-card .product-photo:hover{
+    filter:brightness(1.08);
   }
   .joke-card-body{
     padding:24px 30px 30px;
@@ -401,6 +406,40 @@
     form.lock-form{flex-direction:column; border-radius:12px;}
     form.lock-form button{padding:16px;}
   }
+
+  /* LIGHTBOX */
+  #lightbox{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(42,32,51,0.92);
+    z-index:1000;
+    align-items:center;
+    justify-content:center;
+    padding:40px;
+  }
+  #lightbox img{
+    max-width:90vw;
+    max-height:90vh;
+    object-fit:contain;
+    border-radius:10px;
+    box-shadow:0 10px 40px rgba(0,0,0,0.4);
+  }
+  .lightbox-close{
+    position:fixed;
+    top:22px;
+    right:28px;
+    background:none;
+    border:0;
+    color:#fff;
+    font-size:2.4rem;
+    line-height:1;
+    cursor:pointer;
+    font-family:'Inter', sans-serif;
+    opacity:0.85;
+    transition:opacity 0.2s ease;
+  }
+  .lightbox-close:hover{opacity:1;}
 </style>
 </head>
 <body>
@@ -686,6 +725,44 @@
     document.getElementById('lock-form').addEventListener('submit', function () {
       localStorage.setItem('fp_unlocked', 'true');
       unlock();
+    });
+  })();
+</script>
+
+<div id="lightbox">
+  <button class="lightbox-close" aria-label="Close">&times;</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<script>
+  (function () {
+    var lightbox = document.getElementById('lightbox');
+    var lightboxImg = document.getElementById('lightbox-img');
+    var closeBtn = lightbox.querySelector('.lightbox-close');
+
+    function openLightbox(src, alt) {
+      lightboxImg.src = src;
+      lightboxImg.alt = alt || '';
+      lightbox.style.display = 'flex';
+    }
+
+    function closeLightbox() {
+      lightbox.style.display = 'none';
+      lightboxImg.src = '';
+    }
+
+    document.querySelectorAll('.product-photo').forEach(function (photo) {
+      photo.addEventListener('click', function () {
+        openLightbox(photo.src, photo.alt);
+      });
+    });
+
+    closeBtn.addEventListener('click', closeLightbox);
+
+    lightbox.addEventListener('click', function (e) {
+      if (e.target === lightbox) {
+        closeLightbox();
+      }
     });
   })();
 </script>
