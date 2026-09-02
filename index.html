@@ -308,7 +308,7 @@
         2. Copy your form's ID from the embed code Kit gives you.
         3. Replace YOUR_FORM_ID below with that ID.
       -->
-      <form class="signup" id="kit-form">
+      <form class="signup" id="kit-form" method="post" action="https://app.kit.com/forms/9874369/subscriptions" target="_blank">
         <input type="email" name="email_address" placeholder="Your email" required aria-label="Email address">
         <button type="submit">COME ON IN →</button>
       </form>
@@ -338,46 +338,6 @@
     <span>&copy; 2026 First Place. All rights reserved.</span>
   </div>
 </footer>
-
-<script>
-  const KIT_FORM_ID = "9874369";
-  const form = document.getElementById('kit-form');
-  const message = document.getElementById('form-message');
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = form.email_address.value;
-    const button = form.querySelector('button');
-    const originalText = button.textContent;
-    button.textContent = 'Sending...';
-    button.disabled = true;
-
-    try {
-      const formData = new FormData();
-      formData.append('email_address', email);
-
-      const res = await fetch(`https://app.kit.com/forms/${KIT_FORM_ID}/subscriptions`, {
-        method: 'POST',
-        headers: { 'Accept': 'application/json' },
-        body: formData
-      });
-
-      if (res.ok) {
-        message.textContent = "You're on the list. Welcome home.";
-        message.className = 'form-message visible success';
-        form.reset();
-      } else {
-        throw new Error('Submission failed');
-      }
-    } catch (err) {
-      message.textContent = "Something went wrong — please try again.";
-      message.className = 'form-message visible error';
-    } finally {
-      button.textContent = originalText;
-      button.disabled = false;
-    }
-  });
-</script>
 
 </body>
 </html>
