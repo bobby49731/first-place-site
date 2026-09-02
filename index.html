@@ -353,10 +353,13 @@
     button.disabled = true;
 
     try {
+      const formData = new FormData();
+      formData.append('email_address', email);
+
       const res = await fetch(`https://app.kit.com/forms/${KIT_FORM_ID}/subscriptions`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ email_address: email })
+        headers: { 'Accept': 'application/json' },
+        body: formData
       });
 
       if (res.ok) {
