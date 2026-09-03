@@ -185,6 +185,7 @@
     .products-inner{grid-template-columns:1fr;}
   }
   .joke-card{
+    position:relative;
     border-radius:20px;
     overflow:hidden;
     color:#fff;
@@ -201,6 +202,27 @@
   }
   .joke-card .product-photo:hover{
     filter:brightness(1.08);
+  }
+  .dev-badge{
+    position:absolute;
+    top:12px;
+    left:12px;
+    z-index:2;
+    background:rgba(255,255,255,0.94);
+    color:var(--ink);
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:11px;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    padding:5px 11px;
+    border-radius:999px;
+  }
+  .pledge-note{
+    margin-top:10px;
+    font-size:12.5px;
+    line-height:1.4;
+    color:rgba(255,255,255,0.8);
   }
   .joke-card-body{
     padding:24px 30px 30px;
@@ -254,6 +276,34 @@
   .card-jeremy .pledge-btn{color:var(--teal-deep);}
   .card-will{background:var(--blue);}
   .card-will .pledge-btn{color:var(--blue-deep);}
+
+  /* HOW PLEDGING WORKS */
+  .pledge-info{
+    max-width:640px;
+    margin:44px auto 0;
+    padding:26px 28px;
+    background:var(--paper-2);
+    border:1px solid var(--line);
+    border-radius:16px;
+    text-align:center;
+  }
+  .pledge-info h3{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:1.05rem;
+    color:var(--plum);
+    margin-bottom:8px;
+  }
+  .pledge-info p{
+    color:var(--ink-soft);
+    font-size:14px;
+    line-height:1.6;
+  }
+  .pledge-info a{
+    color:var(--plum);
+    font-weight:600;
+    text-decoration:underline;
+  }
 
   /*
     STRIPE INTEGRATION NOTE:
@@ -567,6 +617,7 @@
   <div class="products-inner">
 
     <div class="joke-card card-fran">
+      <span class="dev-badge">In Development</span>
       <img class="product-photo" src="assets/product_fran.jpg" alt="THE FROONEY™">
       <div class="joke-card-body">
         <div class="setup">FRAN HAS A FROONEY.</div>
@@ -575,10 +626,12 @@
           <span class="product-name">THE FROONEY™</span>
           <a class="pledge-btn" href="https://buy.stripe.com/test_00w9AM9k4h0s3sn69d8IU00" target="_blank" rel="noopener">Pledge</a>
         </div>
+        <p class="pledge-note">This product isn't made yet — your pledge helps fund production.</p>
       </div>
     </div>
 
     <div class="joke-card card-martha">
+      <span class="dev-badge">In Development</span>
       <img class="product-photo" src="assets/product_martha.jpg" alt="THE PENCLET™">
       <div class="joke-card-body">
         <div class="setup">MARTHA SPINS A BRACELET AROUND A PENCIL.</div>
@@ -587,10 +640,12 @@
           <span class="product-name">THE PENCLET™</span>
           <a class="pledge-btn" href="https://buy.stripe.com/test_fZuaEQbscaC4fb57dh8IU05" target="_blank" rel="noopener">Pledge</a>
         </div>
+        <p class="pledge-note">This product isn't made yet — your pledge helps fund production.</p>
       </div>
     </div>
 
     <div class="joke-card card-jeremy">
+      <span class="dev-badge">In Development</span>
       <img class="product-photo" src="assets/product_jeremy.jpg" alt="THE WILL YOU BE MINE™">
       <div class="joke-card-body">
         <div class="setup">WILL HAS OPINIONS ON GROOMING.</div>
@@ -599,10 +654,12 @@
           <span class="product-name">THE WILL YOU BE MINE™</span>
           <a class="pledge-btn" href="https://buy.stripe.com/test_fZu3cogMwh0s1kfgNR8IU01" target="_blank" rel="noopener">Pledge</a>
         </div>
+        <p class="pledge-note">This product isn't made yet — your pledge helps fund production.</p>
       </div>
     </div>
 
     <div class="joke-card card-will">
+      <span class="dev-badge">In Development</span>
       <img class="product-photo" src="assets/product_will.jpg" alt="MISPLACED BY JEREMY™">
       <div class="joke-card-body">
         <div class="setup">JEREMY LOSES EVERYTHING.</div>
@@ -611,9 +668,27 @@
           <span class="product-name">MISPLACED BY JEREMY™</span>
           <a class="pledge-btn" href="https://buy.stripe.com/test_bJe6oA1RCh0sbYT69d8IU04" target="_blank" rel="noopener">Pledge</a>
         </div>
+        <p class="pledge-note">This product isn't made yet — your pledge helps fund production.</p>
       </div>
     </div>
 
+  </div>
+
+  <!--
+    PLACEHOLDER COPY — replace with the final pledge policy before launch:
+    exact refund/no-refund terms if a product doesn't hit its funding
+    threshold, and a real expected update cadence (e.g. "monthly").
+    Link the "Read the full pledge policy" line to that page once it exists.
+  -->
+  <div class="pledge-info">
+    <h3>How pledging works</h3>
+    <p>
+      These are pre-manufacture products — pledging isn't the same as buying
+      something in stock. Your pledge goes toward funding production. If a
+      product doesn't reach the support it needs to get made, pledgers will
+      be notified and refunded. We'll share manufacturing updates as
+      milestones happen. <a href="#">Read the full pledge policy</a>.
+    </p>
   </div>
 </div>
 
