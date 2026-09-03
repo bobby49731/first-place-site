@@ -2,4 +2,4 @@
   X-Frame-Options: SAMEORIGIN
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://player.vimeo.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; frame-src https://player.vimeo.com; connect-src 'self' https://app.kit.com https://formspree.io https://player.vimeo.com; form-action 'self' https://app.kit.com; object-src 'none'; base-uri 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://player.vimeo.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; frame-src https://player.vimeo.com; connect-src 'self' https://app.kit.com https://formspree.io https://player.vimeo.com https://cloudflareinsights.com; form-action 'self' https://app.kit.com; object-src 'none'; base-uri 'self'
