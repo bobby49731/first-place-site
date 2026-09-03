@@ -93,6 +93,39 @@
       radial-gradient(ellipse 60% 40% at 20% 10%, rgba(240,168,46,0.12), transparent 60%),
       radial-gradient(ellipse 50% 40% at 85% 90%, rgba(46,111,184,0.16), transparent 60%);
   }
+
+  /* KEY BIRD — plays once when the hero scrolls into view */
+  .bird-fly{
+    --arc-x1:58vw; --arc-y1:-150px;
+    --arc-x2:122vw; --arc-y2:-260px;
+    position:absolute;
+    left:-14%;
+    bottom:78px;
+    width:64px;
+    height:auto;
+    opacity:0;
+    pointer-events:none;
+    z-index:2;
+    will-change:transform, opacity;
+  }
+  .bird-fly.fly{
+    animation:bird-arc 3.4s cubic-bezier(0.35,0.05,0.4,1) forwards;
+  }
+  @keyframes bird-arc{
+    0%{transform:translate(0,0) rotate(-6deg); opacity:0;}
+    10%{opacity:1;}
+    50%{transform:translate(var(--arc-x1), var(--arc-y1)) rotate(2deg);}
+    88%{opacity:1;}
+    100%{transform:translate(var(--arc-x2), var(--arc-y2)) rotate(12deg); opacity:0;}
+  }
+  @media (max-width:600px){
+    .bird-fly{
+      --arc-x1:55vw; --arc-y1:-38px;
+      --arc-x2:120vw; --arc-y2:-72px;
+      width:38px;
+      bottom:8px;
+    }
+  }
   .hero-content{position:relative; z-index:1;}
 
   .logo-swing-wrap{
@@ -279,6 +312,7 @@
   @media (prefers-reduced-motion: reduce){
     html{scroll-behavior:auto;}
     .logo-swing-wrap{animation:none;}
+    .bird-fly.fly{animation:none; opacity:0;}
   }
   :focus-visible{outline:2px solid var(--gold); outline-offset:3px;}
 </style>
@@ -301,6 +335,33 @@
     <h1 class="title">FIRST PLACE</h1>
     <p class="hero-tagline">Moving out<br>is the easy part.</p>
   </div>
+
+  <svg id="hero-bird" class="bird-fly" viewBox="0 0 126 70" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <!-- motion trail -->
+    <circle cx="8" cy="60" r="2" fill="#241B2E" opacity="0.15"/>
+    <circle cx="15" cy="56" r="2.6" fill="#241B2E" opacity="0.22"/>
+    <circle cx="23" cy="52" r="3.2" fill="#241B2E" opacity="0.3"/>
+    <!-- tail -->
+    <path d="M32 44 L16 38 L23 48 L16 56 L34 52 Z" fill="var(--blue-deep)" stroke="#241B2E" stroke-width="2.5" stroke-linejoin="round"/>
+    <!-- body -->
+    <ellipse cx="50" cy="46" rx="25" ry="21" fill="var(--blue)" stroke="#241B2E" stroke-width="3"/>
+    <!-- wing -->
+    <ellipse cx="44" cy="42" rx="13" ry="8" fill="var(--blue-deep)" stroke="#241B2E" stroke-width="2.5" transform="rotate(-22 44 42)"/>
+    <!-- head -->
+    <circle cx="76" cy="28" r="17" fill="var(--blue)" stroke="#241B2E" stroke-width="3"/>
+    <!-- eye -->
+    <circle cx="82" cy="23" r="5" fill="#241B2E"/>
+    <circle cx="84" cy="21" r="1.6" fill="#fff"/>
+    <!-- beak (deliberately a deeper orange than the gold key, so they read as separate) -->
+    <path d="M90 25 L106 19 L96 33 Z" fill="#E8720C" stroke="#241B2E" stroke-width="2.5" stroke-linejoin="round"/>
+    <!-- key -->
+    <circle cx="110" cy="15" r="3.4" fill="var(--gold)" stroke="#241B2E" stroke-width="1.5"/>
+    <g stroke="var(--gold)" stroke-width="2.4" stroke-linecap="round">
+      <line x1="113" y1="18" x2="120" y2="25"/>
+      <line x1="116" y1="21" x2="118.5" y2="18.5"/>
+      <line x1="118" y1="23" x2="120.5" y2="20.5"/>
+    </g>
+  </svg>
 </header>
 
 <section class="door-section" id="notify">
@@ -362,6 +423,25 @@
   document.getElementById('kit-form').addEventListener('submit', function () {
     localStorage.setItem('fp_unlocked', 'true');
   });
+</script>
+
+<script>
+  (function () {
+    var bird = document.getElementById('hero-bird');
+    var hero = document.querySelector('.hero');
+    if (!bird || !hero || !('IntersectionObserver' in window)) return;
+
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          bird.classList.add('fly');
+          observer.unobserve(hero);
+        }
+      });
+    }, { threshold: 0.3 });
+
+    observer.observe(hero);
+  })();
 </script>
 
 <div id="want-modal" class="modal-overlay">
