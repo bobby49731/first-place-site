@@ -126,50 +126,13 @@
   }
   .sizzle-frame{
     position:relative;
-    aspect-ratio:21/9;
-    background:var(--plum) url('assets/sizzle_bg.jpg') center/cover no-repeat;
+    padding-top:52.73%;
+    background:var(--plum);
     border-radius:20px;
     overflow:hidden;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-  }
-  .sizzle-frame::before{
-    content:'';
-    position:absolute;
-    inset:0;
-    background:rgba(42,32,51,0.55);
-    z-index:1;
   }
   .sizzle-frame iframe{
-    position:absolute; inset:0; width:100%; height:100%; border:0; z-index:2;
-  }
-  .sizzle-placeholder{
-    position:relative;
-    z-index:2;
-    text-align:center;
-    color:#E8DEF5;
-  }
-  .sizzle-play{
-    width:76px; height:76px;
-    background:var(--gold);
-    border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    margin:0 auto 16px;
-    transition:transform 0.25s ease;
-  }
-  .sizzle-frame:hover .sizzle-play{transform:scale(1.07);}
-  .sizzle-play svg{width:22px; height:22px; fill:var(--plum); margin-left:3px;}
-  .sizzle-label{
-    font-family:'Baloo 2', sans-serif;
-    font-weight:600;
-    font-size:14px;
-    letter-spacing:0.02em;
-    color:var(--gold);
-    margin-bottom:2px;
-  }
-  @media (max-width:640px){
-    .sizzle-frame{aspect-ratio:16/10;}
+    position:absolute; inset:0; width:100%; height:100%; border:0;
   }
 
   /* PRODUCT-JOKE GRID */
@@ -517,28 +480,11 @@
 <div class="sizzle">
   <div class="sizzle-inner">
     <div class="sizzle-frame">
-      <!--
-        VIMEO SIZZLE REEL:
-        Once the sizzle is ready and uploaded to Vimeo, replace this whole
-        placeholder <div class="sizzle-placeholder">...</div> with:
-
-          <iframe src="https://player.vimeo.com/video/YOUR_VIDEO_ID?title=0&byline=0&portrait=0"
-                  title="FIRST PLACE Sizzle Reel"
-                  allow="autoplay; fullscreen; picture-in-picture"
-                  allowfullscreen></iframe>
-
-        Get YOUR_VIDEO_ID from the Vimeo share link, e.g. vimeo.com/123456789 -> 123456789.
-      -->
-      <div class="sizzle-placeholder">
-        <div class="sizzle-play">
-          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        </div>
-        <p class="sizzle-label">Watch</p>
-        <p>Sizzle reel coming soon</p>
-      </div>
+      <iframe src="https://player.vimeo.com/video/1223744479?h=eaf1e49bed&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" referrerpolicy="strict-origin-when-cross-origin" title="First Place trailer"></iframe>
     </div>
   </div>
 </div>
+<script src="https://player.vimeo.com/api/player.js"></script>
 
 <div class="goods-divider">
   <h2>FIRST PLACE GOODS</h2>
