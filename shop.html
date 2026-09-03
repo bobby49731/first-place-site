@@ -264,7 +264,7 @@
     border-radius:16px;
     text-align:center;
   }
-  .pledge-info h3{
+  .pledge-info h2{
     font-family:'Baloo 2', sans-serif;
     font-weight:700;
     font-size:1.05rem;
@@ -284,11 +284,11 @@
 
   /*
     STRIPE INTEGRATION NOTE:
-    Each .pledge-btn below is an <a> tag pointing to href="#" as a placeholder.
-    Once products have real prices, replace each href with a Stripe Payment Link
-    (created in the Stripe Dashboard -> Payment Links), e.g.:
-      <a class="pledge-btn" href="https://buy.stripe.com/xxxxxxxx">Pledge $25</a>
-    No backend needed - Stripe hosts the checkout page itself.
+    Each .pledge-btn below already points to a real Stripe Payment Link
+    (created in the Stripe Dashboard -> Payment Links) — but they're all
+    still test-mode links (buy.stripe.com/test_...). Before launch, swap
+    each href for its live-mode equivalent. No backend needed either way -
+    Stripe hosts the checkout page itself.
   */
 
   .goods-blurb{
@@ -304,7 +304,7 @@
     text-align:center;
     padding:70px 6vw 40px;
   }
-  .goods-divider h2{
+  .goods-divider h1{
     font-family:'Baloo 2', sans-serif;
     font-weight:800;
     font-size:clamp(1.8rem, 4.5vw, 2.6rem);
@@ -485,8 +485,8 @@
     </div>
     <a href="index.html" class="nav-home">← Home</a>
     <button class="nav-toggle" id="nav-toggle" type="button" aria-label="Toggle menu" aria-expanded="false" aria-controls="nav-links">
-      <svg class="icon-menu" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      <svg class="icon-close" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
+      <svg class="icon-menu" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      <svg class="icon-close" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
     </button>
   </div>
 </nav>
@@ -501,7 +501,7 @@
 <script src="https://player.vimeo.com/api/player.js"></script>
 
 <div class="goods-divider">
-  <h2>FIRST PLACE GOODS</h2>
+  <h1>FIRST PLACE GOODS</h1>
   <p class="goods-blurb">We're turning the things they love, lose, obsess over, carry around, and can't live without into things you probably don't need. But are definitely going to want.</p>
 </div>
 
@@ -572,7 +572,7 @@
     threshold, and a real expected update cadence (e.g. "monthly").
   -->
   <div class="pledge-info">
-    <h3>How pledging works</h3>
+    <h2>How pledging works</h2>
     <p>
       These are pre-manufacture products — pledging isn't the same as buying
       something in stock. Your pledge goes toward funding production. If a
