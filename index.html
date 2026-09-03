@@ -453,12 +453,6 @@
 </footer>
 
 <script>
-  document.getElementById('kit-form').addEventListener('submit', function () {
-    localStorage.setItem('fp_unlocked', 'true');
-  });
-</script>
-
-<script>
   (function () {
     var bird = document.getElementById('hero-bird');
     var section = document.querySelector('.door-section');
@@ -559,7 +553,6 @@
       })
         .then(function (res) {
           if (!res.ok) throw new Error('Submission failed');
-          localStorage.setItem('fp_unlocked', 'true');
           form.hidden = true;
           successMsg.hidden = false;
           window.setTimeout(function () {
