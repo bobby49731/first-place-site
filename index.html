@@ -229,6 +229,7 @@
     overflow:hidden;
     max-width:440px;
   }
+  form.signup[hidden]{display:none;}
   form.signup input[type="email"]{
     flex:1; background:transparent; border:0; padding:16px 18px;
     color:var(--ink); font-family:'Inter', sans-serif; font-size:15px; outline:none; min-width:0;
@@ -240,6 +241,23 @@
     cursor:pointer; transition:background 0.2s ease; white-space:nowrap;
   }
   form.signup button:hover{background:#FFC15A;}
+  .signup-return{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    max-width:440px;
+    background:var(--gold);
+    color:var(--plum);
+    text-decoration:none;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:14.5px;
+    padding:16px 18px;
+    border-radius:12px;
+    transition:background 0.2s ease;
+  }
+  .signup-return[hidden]{display:none;}
+  .signup-return:hover{background:#FFC15A;}
   .capture-note{margin-top:16px; font-size:12.5px; color:#C6B4DB;}
 
   @media (max-width:760px){
@@ -247,6 +265,7 @@
     .door-copy h2{text-align:center;}
     .door-copy .lead{margin-left:auto; margin-right:auto;}
     form.signup{margin:0 auto; max-width:100%;}
+    .signup-return{margin:0 auto; max-width:100%;}
   }
   @media (max-width:520px){
     form.signup{flex-direction:column; border-radius:12px;}
@@ -430,10 +449,11 @@
       <h2>Want to come over?</h2>
       <p class="lead">Films, fidgets, The Frooney by Fran, and other things we probably shouldn't be selling.</p>
 
-      <form class="signup" method="post" action="https://app.kit.com/forms/9874369/subscriptions">
+      <form class="signup" id="door-signup-form" method="post" action="https://app.kit.com/forms/9874369/subscriptions">
         <input type="email" name="email_address" placeholder="Your email" required aria-label="Email address">
         <button type="submit">COME ON IN →</button>
       </form>
+      <a href="shop.html" class="signup-return" id="door-return-cta" hidden>Continue to the shop →</a>
       <p class="capture-note">No spam. Just the show, the drops, and the date.</p>
     </div>
   </div>
@@ -482,6 +502,24 @@
     }, { threshold: 0.2 });
 
     observer.observe(section);
+  })();
+</script>
+
+<script>
+  (function () {
+    var form = document.getElementById('door-signup-form');
+    var returnCta = document.getElementById('door-return-cta');
+    if (!form || !returnCta) return;
+
+    if (localStorage.getItem('hasEnteredEmail') === 'true') {
+      form.hidden = true;
+      returnCta.hidden = false;
+    }
+
+    // native form submit — just record the flag, let the POST proceed as normal
+    form.addEventListener('submit', function () {
+      localStorage.setItem('hasEnteredEmail', 'true');
+    });
   })();
 </script>
 
