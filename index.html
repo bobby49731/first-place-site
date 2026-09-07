@@ -548,21 +548,47 @@
       submitBtn.disabled = true;
       submitBtn.textContent = 'Sending…';
 
-      var formData = new FormData();
-      formData.append('email_address', email);
-
-      fetch(form.action, {
+      // Check whether this email is already a confirmed Kit subscriber first —
+      // Kit won't send a new confirmation email to someone already confirmed,
+      // which would otherwise leave them stuck on "check your email" forever
+      // on a device that's never been let in before. Any failure here (endpoint
+      // down, network error, non-200) falls through to the normal
+      // submit-to-Kit flow below, same as before this check existed.
+      fetch('/api/check-subscriber', {
         method: 'POST',
-        headers: { 'Accept': 'application/json' },
-        body: formData
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
       })
-        .then(function (res) {
-          if (!res.ok) throw new Error('Submission failed');
-          localStorage.setItem('hasEnteredEmail', 'true');
-          form.hidden = true;
-          messageEl.textContent = 'Check your email to come on in.';
-          messageEl.className = 'door-message success';
-          messageEl.hidden = false;
+        .then(function (res) { return res.ok ? res.json() : { confirmed: false }; })
+        .catch(function () { return { confirmed: false }; })
+        .then(function (data) {
+          if (data && data.confirmed) {
+            localStorage.setItem('hasEnteredEmail', 'true');
+            form.hidden = true;
+            messageEl.textContent = "You're already confirmed — taking you in…";
+            messageEl.className = 'door-message success';
+            messageEl.hidden = false;
+            window.setTimeout(function () {
+              window.location.href = 'shop.html';
+            }, 1300);
+            return;
+          }
+
+          var formData = new FormData();
+          formData.append('email_address', email);
+
+          return fetch(form.action, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' },
+            body: formData
+          }).then(function (res) {
+            if (!res.ok) throw new Error('Submission failed');
+            localStorage.setItem('hasEnteredEmail', 'true');
+            form.hidden = true;
+            messageEl.textContent = 'Check your email to come on in.';
+            messageEl.className = 'door-message success';
+            messageEl.hidden = false;
+          });
         })
         .catch(function () {
           submitBtn.disabled = false;
@@ -632,6 +658,15 @@
       if (e.target === overlay) closeModal();
     });
 
+    function grantAccess() {
+      localStorage.setItem('hasEnteredEmail', 'true');
+      form.hidden = true;
+      successMsg.hidden = false;
+      window.setTimeout(function () {
+        window.location.href = 'shop.html';
+      }, 1300);
+    }
+
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var email = emailInput.value.trim();
@@ -648,22 +683,34 @@
       submitBtn.disabled = true;
       submitBtn.textContent = 'Sending…';
 
-      var formData = new FormData();
-      formData.append('email_address', email);
-
-      fetch('https://app.kit.com/forms/9874369/subscriptions', {
+      // Check whether this email is already a confirmed Kit subscriber first —
+      // if so, skip re-submitting to Kit and let them straight in. Any failure
+      // here (endpoint down, network error, non-200) falls through to the
+      // normal submit-to-Kit flow below, same as before this check existed.
+      fetch('/api/check-subscriber', {
         method: 'POST',
-        headers: { 'Accept': 'application/json' },
-        body: formData
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
       })
-        .then(function (res) {
-          if (!res.ok) throw new Error('Submission failed');
-          localStorage.setItem('hasEnteredEmail', 'true');
-          form.hidden = true;
-          successMsg.hidden = false;
-          window.setTimeout(function () {
-            window.location.href = 'shop.html';
-          }, 1300);
+        .then(function (res) { return res.ok ? res.json() : { confirmed: false }; })
+        .catch(function () { return { confirmed: false }; })
+        .then(function (data) {
+          if (data && data.confirmed) {
+            grantAccess();
+            return;
+          }
+
+          var formData = new FormData();
+          formData.append('email_address', email);
+
+          return fetch('https://app.kit.com/forms/9874369/subscriptions', {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' },
+            body: formData
+          }).then(function (res) {
+            if (!res.ok) throw new Error('Submission failed');
+            grantAccess();
+          });
         })
         .catch(function () {
           submitBtn.disabled = false;
