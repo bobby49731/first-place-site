@@ -1,0 +1,21 @@
+# ⚠️ REQUIRED BEFORE DEPLOYING: set `name` below to match your EXISTING
+# Worker's name exactly (Cloudflare dashboard → Workers & Pages → the name
+# shown at the top of your project, or run `wrangler deployments list` /
+# `wrangler whoami` from a directory where you've already deployed to find
+# it). This file didn't exist anywhere I could find it, so I don't know
+# your real Worker name — if this doesn't match, `wrangler deploy` will
+# create a brand-new, separate Worker instead of updating the one already
+# live at watchfirstplace.com.
+#
+# If you already have a custom domain/route binding watchfirstplace.com to
+# your Worker (set up via the dashboard's "Triggers" tab, most likely),
+# that's unaffected by this file and doesn't need to be repeated here.
+
+name = "first-place-site"
+main = "src/index.js"
+compatibility_date = "2026-09-07"
+
+[assets]
+directory = "./public/"
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
