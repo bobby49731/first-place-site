@@ -235,12 +235,17 @@
     color:var(--ink); font-family:'Inter', sans-serif; font-size:15px; outline:none; min-width:0;
   }
   form.signup input[type="email"]::placeholder{color:#9A8FA6;}
+  form.signup input[type="email"].invalid{box-shadow:inset 0 0 0 2px #E0637E;}
   form.signup button{
     background:var(--gold); color:var(--plum); border:0; padding:0 22px;
     font-family:'Baloo 2', sans-serif; font-weight:700; font-size:14.5px;
     cursor:pointer; transition:background 0.2s ease; white-space:nowrap;
   }
   form.signup button:hover{background:#FFC15A;}
+  form.signup button:disabled{opacity:0.7; cursor:not-allowed;}
+  .door-message{margin-top:16px; font-size:14px; font-weight:600;}
+  .door-message.success{color:var(--gold);}
+  .door-message.error{color:#F0A0A0; font-weight:500; font-size:13.5px;}
   .signup-return{
     display:flex;
     align-items:center;
@@ -449,12 +454,13 @@
       <h2>Want to come over?</h2>
       <p class="lead">Films, fidgets, The Frooney by Fran, and other things we probably shouldn't be selling.</p>
 
-      <form class="signup" id="door-signup-form" method="post" action="https://app.kit.com/forms/9874369/subscriptions">
-        <input type="email" name="email_address" placeholder="Your email" required aria-label="Email address">
-        <button type="submit">COME ON IN →</button>
+      <form class="signup" id="door-signup-form" method="post" action="https://app.kit.com/forms/9874369/subscriptions" novalidate>
+        <input type="email" name="email_address" id="door-email" placeholder="Your email" required aria-label="Email address">
+        <button type="submit" id="door-submit">COME ON IN →</button>
       </form>
+      <p class="door-message" id="door-message" hidden></p>
       <a href="shop.html" class="signup-return" id="door-return-cta" hidden>Continue to the shop →</a>
-      <p class="capture-note">No spam. Just the show, the drops, and the date.</p>
+      <p class="capture-note" id="door-capture-note">No spam. Just the show, the drops, and the date.</p>
     </div>
   </div>
 </section>
@@ -509,16 +515,62 @@
   (function () {
     var form = document.getElementById('door-signup-form');
     var returnCta = document.getElementById('door-return-cta');
-    if (!form || !returnCta) return;
+    var emailInput = document.getElementById('door-email');
+    var submitBtn = document.getElementById('door-submit');
+    var messageEl = document.getElementById('door-message');
+    var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!form || !returnCta || !emailInput || !submitBtn || !messageEl) return;
 
     if (localStorage.getItem('hasEnteredEmail') === 'true') {
       form.hidden = true;
       returnCta.hidden = false;
     }
 
-    // native form submit — just record the flag, let the POST proceed as normal
-    form.addEventListener('submit', function () {
-      localStorage.setItem('hasEnteredEmail', 'true');
+    // Submits via fetch so a successful signup never navigates the visitor
+    // to app.kit.com — if JS fails to run, the form's own method/action
+    // still work as a plain native POST fallback.
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var email = emailInput.value.trim();
+
+      messageEl.hidden = true;
+      emailInput.classList.remove('invalid');
+
+      if (!email || !emailPattern.test(email)) {
+        messageEl.textContent = 'Please enter a valid email address.';
+        messageEl.className = 'door-message error';
+        messageEl.hidden = false;
+        emailInput.classList.add('invalid');
+        emailInput.focus();
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending…';
+
+      var formData = new FormData();
+      formData.append('email_address', email);
+
+      fetch(form.action, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' },
+        body: formData
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error('Submission failed');
+          localStorage.setItem('hasEnteredEmail', 'true');
+          form.hidden = true;
+          messageEl.textContent = 'Check your email to come on in.';
+          messageEl.className = 'door-message success';
+          messageEl.hidden = false;
+        })
+        .catch(function () {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'COME ON IN →';
+          messageEl.textContent = 'Something went wrong — please try again.';
+          messageEl.className = 'door-message error';
+          messageEl.hidden = false;
+        });
     });
   })();
 </script>
