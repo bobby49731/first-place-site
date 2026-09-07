@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>You're In! — FIRST PLACE</title>
+<meta name="description" content="You're confirmed! Redirecting you to the FIRST PLACE shop.">
+<meta name="robots" content="noindex">
+<meta http-equiv="refresh" content="2;url=shop.html">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="48x48" href="assets/favicon-48x48.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="assets/site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBF3E6;
+    --ink:#2A2033;
+    --gold:#F0A82E;
+    --plum:#4B2E6B;
+    --plum-deep:#3A2251;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html, body{height:100%;}
+  body{
+    background:var(--plum);
+    color:#fff;
+    font-family:'Inter', -apple-system, sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:24px;
+    position:relative;
+    overflow:hidden;
+  }
+  body::before{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 10%, rgba(240,168,46,0.12), transparent 60%),
+      radial-gradient(ellipse 50% 40% at 85% 90%, rgba(46,111,184,0.16), transparent 60%);
+  }
+  .confirm-card{position:relative; z-index:1;}
+  .confirm-logo{
+    width:96px;
+    height:96px;
+    border-radius:50%;
+    object-fit:cover;
+    box-shadow:0 8px 22px rgba(0,0,0,0.3);
+    border:3px solid rgba(255,255,255,0.15);
+    margin:0 auto 26px;
+    animation:pop 0.5s ease;
+  }
+  @keyframes pop{
+    0%{transform:scale(0.7); opacity:0;}
+    100%{transform:scale(1); opacity:1;}
+  }
+  h1{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:clamp(2.2rem, 6vw, 3rem);
+    color:#fff;
+    margin-bottom:12px;
+  }
+  p{
+    color:#D9C9EC;
+    font-size:16px;
+    max-width:40ch;
+    margin:0 auto;
+  }
+  .redirect-note{
+    margin-top:32px;
+    font-size:13px;
+    color:#C6B4DB;
+  }
+  .redirect-note a{color:var(--gold); font-weight:600; text-decoration:underline;}
+  @media (prefers-reduced-motion: reduce){
+    .confirm-logo{animation:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="confirm-card">
+  <img class="confirm-logo" src="assets/apple-touch-icon.png" alt="FIRST PLACE ribbon logo">
+  <h1>You're in!</h1>
+  <p>Taking you to the shop&hellip;</p>
+  <p class="redirect-note">Not redirecting? <a href="shop.html">Go to the shop →</a></p>
+</div>
+
+<script>
+  localStorage.setItem('hasEnteredEmail', 'true');
+  window.setTimeout(function () {
+    window.location.href = 'shop.html';
+  }, 1800);
+</script>
+
+</body>
+</html>
