@@ -6,7 +6,7 @@
 <title>You're In! — FIRST PLACE</title>
 <meta name="description" content="You're confirmed! Redirecting you to the FIRST PLACE shop.">
 <meta name="robots" content="noindex">
-<meta http-equiv="refresh" content="2;url=shop.html">
+<meta http-equiv="refresh" content="2;url=shop.html?unlocked=1">
 <link rel="icon" href="assets/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
@@ -94,13 +94,13 @@
   <img class="confirm-logo" src="assets/apple-touch-icon.png" alt="FIRST PLACE ribbon logo">
   <h1>You're in!</h1>
   <p>Taking you to the shop&hellip;</p>
-  <p class="redirect-note">Not redirecting? <a href="shop.html">Go to the shop →</a></p>
+  <p class="redirect-note">Not redirecting? <a href="shop.html?unlocked=1">Go to the shop →</a></p>
 </div>
 
 <script>
   localStorage.setItem('hasEnteredEmail', 'true');
   window.setTimeout(function () {
-    window.location.href = 'shop.html';
+    window.location.href = 'shop.html?unlocked=1';
   }, 1800);
 </script>
 

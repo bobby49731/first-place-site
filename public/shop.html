@@ -149,6 +149,122 @@
     position:absolute; inset:0; width:100%; height:100%; border:0;
   }
 
+  /* WANT MORE — gated video unlock */
+  .unlock-section{padding:10px 6vw 70px;}
+  .unlock-inner{max-width:1080px; margin:0 auto;}
+  .unlock-head{text-align:center; margin-bottom:34px;}
+  .unlock-head h2{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:clamp(1.8rem, 4.5vw, 2.4rem);
+    color:var(--plum);
+  }
+  .unlock-sub{
+    max-width:560px;
+    margin:12px auto 0;
+    color:var(--ink-soft);
+    font-size:15.5px;
+  }
+
+  .unlock-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:18px;
+    margin-bottom:36px;
+  }
+  @media (max-width:900px){
+    .unlock-grid{grid-template-columns:repeat(2, 1fr);}
+  }
+  @media (max-width:480px){
+    .unlock-grid{grid-template-columns:1fr;}
+  }
+
+  .unlock-card{display:flex; flex-direction:column;}
+  .unlock-thumb{
+    position:relative;
+    aspect-ratio:16/9;
+    border-radius:16px;
+    overflow:hidden;
+  }
+  .unlock-card:nth-child(1) .unlock-thumb{background:linear-gradient(135deg, var(--pink), var(--pink-deep));}
+  .unlock-card:nth-child(2) .unlock-thumb{background:linear-gradient(135deg, var(--gold), var(--gold-deep));}
+  .unlock-card:nth-child(3) .unlock-thumb{background:linear-gradient(135deg, var(--teal), var(--teal-deep));}
+  .unlock-card:nth-child(4) .unlock-thumb{background:linear-gradient(135deg, var(--blue), var(--blue-deep));}
+  .unlock-thumb-fill{
+    position:absolute; inset:0;
+    filter:blur(16px) brightness(0.75) saturate(1.1);
+    transform:scale(1.12);
+    transition:filter 0.9s ease, transform 0.9s cubic-bezier(.34,1.56,.64,1);
+  }
+  .unlock-lock{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(42,32,51,0.28);
+    transition:opacity 0.6s ease;
+  }
+  .unlock-lock svg{width:28px; height:28px; color:#fff;}
+  .unlock-play{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0;
+    transition:opacity 0.4s ease, background 0.2s ease;
+    cursor:pointer;
+  }
+  .unlock-play:hover{background:rgba(42,32,51,0.15);}
+  .unlock-play svg{width:44px; height:44px; color:#fff; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.35));}
+  .unlock-card.unlocked .unlock-thumb-fill{filter:blur(0) brightness(1) saturate(1); transform:scale(1);}
+  .unlock-card.unlocked .unlock-lock{opacity:0; pointer-events:none;}
+  .unlock-card.unlocked .unlock-play{opacity:1;}
+  /* slight cascade so the four cards don't all pop in perfectly in sync */
+  .unlock-card:nth-child(2) .unlock-thumb-fill, .unlock-card:nth-child(2) .unlock-lock{transition-delay:0.08s;}
+  .unlock-card:nth-child(3) .unlock-thumb-fill, .unlock-card:nth-child(3) .unlock-lock{transition-delay:0.16s;}
+  .unlock-card:nth-child(4) .unlock-thumb-fill, .unlock-card:nth-child(4) .unlock-lock{transition-delay:0.24s;}
+  /* used for the "already unlocked on load" case so returning visitors
+     don't watch the reveal animation replay on every normal pageview */
+  .unlock-grid.unlock-instant .unlock-thumb-fill,
+  .unlock-grid.unlock-instant .unlock-lock{transition:none !important;}
+
+  .unlock-meta{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+    margin-top:10px;
+  }
+  .unlock-title{font-family:'Baloo 2', sans-serif; font-weight:700; font-size:14px; color:var(--ink);}
+  .unlock-runtime{font-size:12.5px; color:var(--ink-soft); white-space:nowrap; margin-top:2px;}
+
+  .unlock-gate{max-width:440px; margin:0 auto; text-align:center;}
+  .unlock-form{
+    display:flex;
+    gap:0;
+    background:#fff;
+    border-radius:12px;
+    overflow:hidden;
+    border:1px solid var(--line);
+  }
+  .unlock-form[hidden]{display:none;}
+  .unlock-form input[type="email"]{
+    flex:1; background:transparent; border:0; padding:15px 18px;
+    color:var(--ink); font-family:'Inter', sans-serif; font-size:15px; outline:none; min-width:0;
+  }
+  .unlock-form input[type="email"]::placeholder{color:#9A8FA6;}
+  .unlock-form input[type="email"].invalid{box-shadow:inset 0 0 0 2px #E0637E;}
+  .unlock-form button{
+    background:var(--gold); color:var(--plum); border:0; padding:0 24px;
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:14.5px;
+    cursor:pointer; transition:background 0.2s ease; white-space:nowrap;
+  }
+  .unlock-form button:hover{background:#FFC15A;}
+  .unlock-form button:disabled{opacity:0.7; cursor:not-allowed;}
+  .unlock-message{margin-top:14px; font-size:14px; font-weight:600;}
+  .unlock-message.success{color:var(--teal);}
+  .unlock-message.error{color:#C0392B; font-weight:500; font-size:13.5px;}
+  @media (max-width:480px){
+    .unlock-form{flex-direction:column; border-radius:12px;}
+    .unlock-form button{padding:15px;}
+  }
+
   /* PRODUCT-JOKE GRID */
   .products{padding:30px 6vw 30px;}
   .products-inner{
@@ -506,6 +622,224 @@
   </div>
 </div>
 <script src="https://player.vimeo.com/api/player.js"></script>
+
+<section class="unlock-section" id="want-more">
+  <div class="unlock-inner">
+    <div class="unlock-head">
+      <h2>Want more?</h2>
+      <p class="unlock-sub">New shorts. Product drops before anyone else. Cast tours you won't see anywhere else.</p>
+    </div>
+
+    <!--
+      VIDEO PLACEHOLDERS: each .unlock-thumb-fill below is a plain color
+      gradient standing in for a real thumbnail image, and the titles/
+      runtimes are placeholder copy. Once real files exist: replace the
+      empty .unlock-thumb-fill div with an <img class="unlock-thumb-fill"
+      src="..."> (same class, so the blur/reveal styling still applies),
+      swap in the real title/runtime text, and set each card's
+      data-video-src to the real embed URL — clicking an unlocked card
+      already looks for that attribute and plays it inline.
+    -->
+    <div class="unlock-grid" id="unlock-grid">
+      <div class="unlock-card" data-video-src="">
+        <div class="unlock-thumb">
+          <div class="unlock-thumb-fill"></div>
+          <div class="unlock-lock" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          </div>
+          <div class="unlock-play" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+        </div>
+        <div class="unlock-meta">
+          <span class="unlock-title">Cast Tour: Fran's Room</span>
+          <span class="unlock-runtime">2:14</span>
+        </div>
+      </div>
+
+      <div class="unlock-card" data-video-src="">
+        <div class="unlock-thumb">
+          <div class="unlock-thumb-fill"></div>
+          <div class="unlock-lock" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          </div>
+          <div class="unlock-play" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+        </div>
+        <div class="unlock-meta">
+          <span class="unlock-title">Cast Tour: Martha's Corner</span>
+          <span class="unlock-runtime">3:02</span>
+        </div>
+      </div>
+
+      <div class="unlock-card" data-video-src="">
+        <div class="unlock-thumb">
+          <div class="unlock-thumb-fill"></div>
+          <div class="unlock-lock" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          </div>
+          <div class="unlock-play" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+        </div>
+        <div class="unlock-meta">
+          <span class="unlock-title">Behind the Scenes: First Table Read</span>
+          <span class="unlock-runtime">4:41</span>
+        </div>
+      </div>
+
+      <div class="unlock-card" data-video-src="">
+        <div class="unlock-thumb">
+          <div class="unlock-thumb-fill"></div>
+          <div class="unlock-lock" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          </div>
+          <div class="unlock-play" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+        </div>
+        <div class="unlock-meta">
+          <span class="unlock-title">Drop Preview: The Frooney Prototype</span>
+          <span class="unlock-runtime">1:38</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="unlock-gate" id="unlock-gate">
+      <form class="unlock-form" id="unlock-form" method="post" action="https://app.kit.com/forms/9874369/subscriptions" novalidate>
+        <input type="email" name="email_address" id="unlock-email" placeholder="Your email" required aria-label="Email address">
+        <button type="submit" id="unlock-submit">Unlock</button>
+      </form>
+      <p class="unlock-message" id="unlock-message" hidden></p>
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    var grid = document.getElementById('unlock-grid');
+    var gate = document.getElementById('unlock-gate');
+    var form = document.getElementById('unlock-form');
+    var emailInput = document.getElementById('unlock-email');
+    var submitBtn = document.getElementById('unlock-submit');
+    var messageEl = document.getElementById('unlock-message');
+    if (!grid || !gate || !form || !emailInput || !submitBtn || !messageEl) return;
+
+    function reveal(animated) {
+      if (!animated) grid.classList.add('unlock-instant');
+      grid.querySelectorAll('.unlock-card').forEach(function (card) {
+        card.classList.add('unlocked');
+      });
+      gate.hidden = true;
+      if (!animated) {
+        window.setTimeout(function () { grid.classList.remove('unlock-instant'); }, 50);
+      }
+    }
+
+    function playVideo(card) {
+      var src = card.getAttribute('data-video-src');
+      if (!src) return;
+      var thumb = card.querySelector('.unlock-thumb');
+      var iframe = document.createElement('iframe');
+      iframe.src = src;
+      iframe.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0;';
+      iframe.setAttribute('allow', 'autoplay; fullscreen; picture-in-picture');
+      iframe.setAttribute('allowfullscreen', '');
+      thumb.innerHTML = '';
+      thumb.appendChild(iframe);
+    }
+
+    grid.addEventListener('click', function (e) {
+      var card = e.target.closest('.unlock-card');
+      if (!card || !card.classList.contains('unlocked')) return;
+      playVideo(card);
+    });
+
+    // Returning from a Kit confirmation email: confirmed.html sets the
+    // access flag and redirects here with ?unlocked=1 so this specific
+    // pageview plays the reveal animation, instead of rendering silently
+    // unlocked like a normal revisit would.
+    var params = new URLSearchParams(window.location.search);
+    var justConfirmed = params.get('unlocked') === '1';
+    if (justConfirmed) {
+      params.delete('unlocked');
+      var qs = params.toString();
+      window.history.replaceState(null, '', window.location.pathname + (qs ? '?' + qs : '') + window.location.hash);
+    }
+
+    if (localStorage.getItem('hasEnteredEmail') === 'true') {
+      reveal(justConfirmed);
+      return;
+    }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var email = emailInput.value.trim();
+
+      messageEl.hidden = true;
+      emailInput.classList.remove('invalid');
+
+      if (!email || !EMAIL_PATTERN.test(email)) {
+        messageEl.textContent = 'Please enter a valid email address.';
+        messageEl.className = 'unlock-message error';
+        messageEl.hidden = false;
+        emailInput.classList.add('invalid');
+        emailInput.focus();
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Checking…';
+
+      // Check whether this email is already a confirmed Kit subscriber
+      // first — Kit won't send a new confirmation email to someone
+      // already confirmed, which would otherwise leave them stuck on
+      // "check your email" forever on a device that's never unlocked this
+      // section before. Any failure here (endpoint down, network error,
+      // non-200) falls through to the normal submit-to-Kit flow below,
+      // same as the homepage's email gate.
+      fetch('/api/check-subscriber', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
+      })
+        .then(function (res) { return res.ok ? res.json() : { confirmed: false }; })
+        .catch(function () { return { confirmed: false }; })
+        .then(function (data) {
+          if (data && data.confirmed) {
+            localStorage.setItem('hasEnteredEmail', 'true');
+            reveal(true);
+            return;
+          }
+
+          var formData = new FormData();
+          formData.append('email_address', email);
+
+          return fetch(form.action, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' },
+            body: formData
+          }).then(function (res) {
+            if (!res.ok) throw new Error('Submission failed');
+            localStorage.setItem('hasEnteredEmail', 'true');
+            form.hidden = true;
+            messageEl.textContent = 'Check your email to come on in.';
+            messageEl.className = 'unlock-message success';
+            messageEl.hidden = false;
+          });
+        })
+        .catch(function () {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Unlock';
+          messageEl.textContent = 'Something went wrong — please try again.';
+          messageEl.className = 'unlock-message error';
+          messageEl.hidden = false;
+        });
+    });
+  })();
+</script>
 
 <div class="goods-divider">
   <h1>FIRST PLACE GOODS</h1>
