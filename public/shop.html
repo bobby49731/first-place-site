@@ -318,7 +318,6 @@
     color:rgba(255,255,255,0.8);
   }
   .joke-card-body{
-    padding:24px 30px 30px;
     display:flex;
     flex-direction:column;
     flex:1;
@@ -369,6 +368,94 @@
   .card-jeremy .pledge-btn{color:var(--teal-deep);}
   .card-will{background:var(--blue);}
   .card-will .pledge-btn{color:var(--blue-deep);}
+
+  /* DREAM-FIRST CARD LAYOUT — dream photo/statement lead each card, with
+     the actual product (photo/name/description/pledge button) now a
+     smaller, secondary block underneath. */
+  .joke-card .dream-photo{
+    width:100%;
+    height:300px;
+    object-fit:cover;
+    display:block;
+    cursor:pointer;
+    transition:filter 0.2s ease;
+  }
+  .joke-card .dream-photo:hover{filter:brightness(1.05);}
+  .dream-block{padding:22px 30px 0;}
+  .dream-statement{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:1.3rem;
+    line-height:1.32;
+    margin-bottom:8px;
+  }
+  .dream-cta{
+    font-size:14.5px;
+    opacity:0.92;
+    margin-bottom:16px;
+  }
+  .dream-goal{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:rgba(255,255,255,0.18);
+    border:1px solid rgba(255,255,255,0.4);
+    padding:7px 15px;
+    border-radius:999px;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:12.5px;
+    letter-spacing:0.01em;
+  }
+  .dream-goal svg{flex-shrink:0;}
+
+  /* SECONDARY PRODUCT BLOCK — same info as before, just de-emphasized */
+  .product-secondary{
+    display:flex;
+    gap:14px;
+    align-items:flex-start;
+    margin-top:22px;
+    padding:18px 30px 28px;
+    border-top:1px solid rgba(255,255,255,0.22);
+  }
+  .product-secondary .product-photo{
+    width:92px;
+    height:92px;
+    border-radius:10px;
+    object-fit:cover;
+    flex-shrink:0;
+    cursor:pointer;
+    transition:filter 0.2s ease;
+  }
+  .product-secondary .product-photo:hover{filter:brightness(1.08);}
+  .product-secondary-body{flex:1; min-width:0;}
+  .product-secondary .setup{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:0.95rem;
+    margin-bottom:4px;
+  }
+  .product-secondary .punchline{
+    font-size:12.5px;
+    opacity:0.85;
+    margin-bottom:12px;
+    padding-bottom:0;
+  }
+  .product-secondary .product-row{
+    padding-top:0;
+    border-top:0;
+  }
+  .product-secondary .product-name{font-size:12.5px;}
+  .product-secondary .pledge-btn{padding:8px 14px; font-size:12.5px;}
+  .product-secondary .pledge-note{
+    margin-top:8px;
+    font-size:11px;
+    line-height:1.35;
+    opacity:0.75;
+  }
+  @media (max-width:480px){
+    .joke-card .dream-photo{height:220px;}
+  }
 
   /* HOW PLEDGING WORKS */
   .pledge-info{
@@ -851,57 +938,109 @@
 
     <div class="joke-card card-fran">
       <span class="dev-badge">In Development</span>
-      <img class="product-photo" src="assets/product_fran.jpg" alt="THE FROONEY™">
+      <img class="dream-photo" src="assets/dreams/fran-dream.png" alt="Fran's dream: recording a bubblegum rap album">
       <div class="joke-card-body">
-        <div class="setup">FRAN HAS A FROONEY.</div>
-        <div class="punchline">You'll understand eventually.</div>
-        <div class="product-row">
-          <span class="product-name">THE FROONEY™</span>
-          <a class="pledge-btn" href="https://buy.stripe.com/test_00w9AM9k4h0s3sn69d8IU00" target="_blank" rel="noopener">Pledge</a>
+        <div class="dream-block">
+          <p class="dream-statement">Fran's dream is to record a bubblegum rap album — music video included.</p>
+          <p class="dream-cta">Pledge to help her get there — and we'll document the whole journey.</p>
+          <span class="dream-goal">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22V3"/><path d="M4 4h13l-2 4 2 4H4"/></svg>
+            Goal: $7,000
+          </span>
         </div>
-        <p class="pledge-note">This product isn't made yet — your pledge helps fund production.</p>
+        <div class="product-secondary">
+          <img class="product-photo" src="assets/product_fran.jpg" alt="THE FROONEY™">
+          <div class="product-secondary-body">
+            <div class="setup">FRAN HAS A FROONEY.</div>
+            <div class="punchline">You'll understand eventually.</div>
+            <div class="product-row">
+              <span class="product-name">THE FROONEY™</span>
+              <a class="pledge-btn" href="https://buy.stripe.com/test_00w9AM9k4h0s3sn69d8IU00" target="_blank" rel="noopener">Pledge</a>
+            </div>
+            <p class="pledge-note">This product isn't made yet — your pledge helps fund production.</p>
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="joke-card card-martha">
       <span class="dev-badge">In Development</span>
-      <img class="product-photo" src="assets/product_martha.jpg" alt="THE PENCLET™">
+      <img class="dream-photo" src="assets/dreams/martha-dream.png" alt="Martha's dream: a speaking tour across the US">
       <div class="joke-card-body">
-        <div class="setup">MARTHA SPINS A BRACELET AROUND A PENCIL.</div>
-        <div class="punchline">So we made it official — part pencil, part fidget, entirely Martha.</div>
-        <div class="product-row">
-          <span class="product-name">THE PENCLET™</span>
-          <a class="pledge-btn" href="https://buy.stripe.com/test_fZuaEQbscaC4fb57dh8IU05" target="_blank" rel="noopener">Pledge</a>
+        <div class="dream-block">
+          <p class="dream-statement">Martha's dream is a speaking tour across the US.</p>
+          <p class="dream-cta">Pledge to help her get there — and we'll document the whole journey.</p>
+          <span class="dream-goal">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22V3"/><path d="M4 4h13l-2 4 2 4H4"/></svg>
+            Goal: $10,000
+          </span>
         </div>
-        <p class="pledge-note">This product isn't made yet — your pledge helps fund production.</p>
+        <div class="product-secondary">
+          <img class="product-photo" src="assets/product_martha.jpg" alt="THE PENCLET™">
+          <div class="product-secondary-body">
+            <div class="setup">MARTHA SPINS A BRACELET AROUND A PENCIL.</div>
+            <div class="punchline">So we made it official — part pencil, part fidget, entirely Martha.</div>
+            <div class="product-row">
+              <span class="product-name">THE PENCLET™</span>
+              <a class="pledge-btn" href="https://buy.stripe.com/test_fZuaEQbscaC4fb57dh8IU05" target="_blank" rel="noopener">Pledge</a>
+            </div>
+            <p class="pledge-note">This product isn't made yet — your pledge helps fund production.</p>
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="joke-card card-jeremy">
       <span class="dev-badge">In Development</span>
-      <img class="product-photo" src="assets/product_jeremy.jpg" alt="THE WILL YOU BE MINE™">
+      <img class="dream-photo" src="assets/dreams/will-dream.png" alt="Will's dream: writing alongside the Star Wars universe">
       <div class="joke-card-body">
-        <div class="setup">WILL HAS OPINIONS ON GROOMING.</div>
-        <div class="punchline">A dog brush that grooms, detangles, and dispenses unsolicited Willisms along the way.</div>
-        <div class="product-row">
-          <span class="product-name">THE WILL YOU BE MINE™</span>
-          <a class="pledge-btn" href="https://buy.stripe.com/test_fZu3cogMwh0s1kfgNR8IU01" target="_blank" rel="noopener">Pledge</a>
+        <div class="dream-block">
+          <p class="dream-statement">Will's dream is to write alongside the Star Wars universe — even the fan fiction legends.</p>
+          <p class="dream-cta">Pledge to help him get there — and we'll document the whole journey.</p>
+          <span class="dream-goal">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22V3"/><path d="M4 4h13l-2 4 2 4H4"/></svg>
+            Goal: $3,000
+          </span>
         </div>
-        <p class="pledge-note">This product isn't made yet — your pledge helps fund production.</p>
+        <div class="product-secondary">
+          <img class="product-photo" src="assets/product_jeremy.jpg" alt="THE WILL YOU BE MINE™">
+          <div class="product-secondary-body">
+            <div class="setup">WILL HAS OPINIONS ON GROOMING.</div>
+            <div class="punchline">A dog brush that grooms, detangles, and dispenses unsolicited Willisms along the way.</div>
+            <div class="product-row">
+              <span class="product-name">THE WILL YOU BE MINE™</span>
+              <a class="pledge-btn" href="https://buy.stripe.com/test_fZu3cogMwh0s1kfgNR8IU01" target="_blank" rel="noopener">Pledge</a>
+            </div>
+            <p class="pledge-note">This product isn't made yet — your pledge helps fund production.</p>
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="joke-card card-will">
       <span class="dev-badge">In Development</span>
-      <img class="product-photo" src="assets/product_will.jpg" alt="MISPLACED BY JEREMY™">
+      <img class="dream-photo" src="assets/dreams/jeremy-dream.png" alt="Jeremy's dream: a ride-along with the cops of Cops">
       <div class="joke-card-body">
-        <div class="setup">JEREMY LOSES EVERYTHING.</div>
-        <div class="punchline">So we gave everything a place.</div>
-        <div class="product-row">
-          <span class="product-name">MISPLACED BY JEREMY™</span>
-          <a class="pledge-btn" href="https://buy.stripe.com/test_bJe6oA1RCh0sbYT69d8IU04" target="_blank" rel="noopener">Pledge</a>
+        <div class="dream-block">
+          <p class="dream-statement">Jeremy's dream is a ride-along with the cops of Cops.</p>
+          <p class="dream-cta">Pledge to help him get there — and we'll document the whole journey.</p>
+          <span class="dream-goal">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22V3"/><path d="M4 4h13l-2 4 2 4H4"/></svg>
+            Goal: $5,000
+          </span>
         </div>
-        <p class="pledge-note">This product isn't made yet — your pledge helps fund production.</p>
+        <div class="product-secondary">
+          <img class="product-photo" src="assets/product_will.jpg" alt="MISPLACED BY JEREMY™">
+          <div class="product-secondary-body">
+            <div class="setup">JEREMY LOSES EVERYTHING.</div>
+            <div class="punchline">So we gave everything a place.</div>
+            <div class="product-row">
+              <span class="product-name">MISPLACED BY JEREMY™</span>
+              <a class="pledge-btn" href="https://buy.stripe.com/test_bJe6oA1RCh0sbYT69d8IU04" target="_blank" rel="noopener">Pledge</a>
+            </div>
+            <p class="pledge-note">This product isn't made yet — your pledge helps fund production.</p>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1099,7 +1238,7 @@
       lightboxImg.src = '';
     }
 
-    document.querySelectorAll('.product-photo').forEach(function (photo) {
+    document.querySelectorAll('.product-photo, .dream-photo').forEach(function (photo) {
       photo.addEventListener('click', function () {
         openLightbox(photo.src, photo.alt);
       });
