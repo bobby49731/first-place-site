@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIRST PLACE — The Board Game</title>
+<meta name="description" content="Play the First Place board game — pick your character and follow their path to the dream.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="48x48" href="assets/favicon-48x48.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="assets/site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBF3E6;
+    --paper-2:#F5EAD8;
+    --ink:#2A2033;
+    --ink-soft:#6B5F71;
+    --blue:#2E6FB8;
+    --blue-deep:#234F86;
+    --gold:#F0A82E;
+    --gold-deep:#D6900F;
+    --plum:#4B2E6B;
+    --plum-deep:#3A2251;
+    --teal:#1E8C82;
+    --teal-deep:#166A62;
+    --pink:#E15A87;
+    --pink-deep:#C43E6A;
+    --setback:#C0392B;
+    --setback-deep:#96271A;
+    --line: rgba(42,32,51,0.12);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', -apple-system, sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+  img{max-width:100%; display:block;}
+  button{font-family:inherit;}
+
+  /* MINIMAL HEADER — no full site nav here; Gear/Stories/Speaking/Join
+     anchors from the main nav don't apply to this standalone page. */
+  header.game-header{
+    position:sticky; top:0; left:0; right:0;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:16px 6vw;
+    z-index:100;
+    background:rgba(251,243,230,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .game-brand{display:flex; align-items:center; gap:10px; text-decoration:none;}
+  .game-brand img{width:34px; height:34px; border-radius:50%; object-fit:cover; box-shadow:0 2px 6px rgba(0,0,0,0.15);}
+  .game-brand span{font-family:'Baloo 2', sans-serif; font-weight:700; font-size:17px; color:var(--ink);}
+  .game-home{
+    background:var(--paper-2); border:1px solid var(--line); padding:9px 18px;
+    border-radius:999px; font-weight:600; text-decoration:none; font-size:14px;
+  }
+
+  .game-wrap{max-width:1080px; margin:0 auto; padding:0 6vw 90px;}
+  .game-screen{padding-top:44px;}
+  .game-screen[hidden]{display:none;}
+
+  .game-title{
+    font-family:'Baloo 2', sans-serif; font-weight:800;
+    font-size:clamp(1.8rem, 4.5vw, 2.5rem);
+    color:var(--plum); text-align:center;
+  }
+  .game-sub{max-width:560px; margin:12px auto 0; text-align:center; color:var(--ink-soft); font-size:16px;}
+
+  /* CHARACTER SELECT */
+  .char-grid{
+    display:grid; grid-template-columns:repeat(4, 1fr); gap:20px;
+    margin-top:40px; max-width:900px; margin-left:auto; margin-right:auto;
+  }
+  @media (max-width:760px){.char-grid{grid-template-columns:repeat(2, 1fr);}}
+  .char-card{
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+    background:#fff; border:1px solid var(--line); border-radius:18px;
+    padding:18px 14px 20px; cursor:pointer; color:inherit;
+    transition:transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .char-card:hover{transform:translateY(-4px); box-shadow:0 10px 24px rgba(42,32,51,0.14); border-color:var(--gold);}
+  .char-card img{width:100%; aspect-ratio:1; object-fit:cover; border-radius:12px; margin-bottom:14px;}
+  .char-name{font-family:'Baloo 2', sans-serif; font-weight:700; font-size:16px; color:var(--plum); margin-bottom:6px;}
+  .char-dream{font-size:12.5px; color:var(--ink-soft); line-height:1.4;}
+
+  /* EMAIL GATE — same visual/interaction pattern as the shop page's
+     unlock section and the homepage door/modal gates. */
+  .gate-card{max-width:440px; margin:36px auto 0; text-align:center;}
+  .gate-picked{display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:24px;}
+  .gate-picked img{width:44px; height:44px; border-radius:50%; object-fit:cover; border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.15);}
+  .gate-picked span{font-family:'Baloo 2', sans-serif; font-weight:700; color:var(--plum);}
+  .gate-form{
+    display:flex; gap:0; background:#fff; border-radius:12px; overflow:hidden; border:1px solid var(--line);
+  }
+  .gate-form[hidden]{display:none;}
+  .gate-form input[type="email"]{
+    flex:1; background:transparent; border:0; padding:15px 18px;
+    color:var(--ink); font-family:'Inter', sans-serif; font-size:15px; outline:none; min-width:0;
+  }
+  .gate-form input[type="email"]::placeholder{color:#9A8FA6;}
+  .gate-form input[type="email"].invalid{box-shadow:inset 0 0 0 2px #E0637E;}
+  .gate-form button{
+    background:var(--gold); color:var(--plum); border:0; padding:0 24px;
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:14.5px;
+    cursor:pointer; transition:background 0.2s ease; white-space:nowrap;
+  }
+  .gate-form button:hover{background:#FFC15A;}
+  .gate-form button:disabled{opacity:0.7; cursor:not-allowed;}
+  .gate-message{margin-top:14px; font-size:14px; font-weight:600;}
+  .gate-message.success{color:var(--teal);}
+  .gate-message.error{color:var(--setback); font-weight:500; font-size:13.5px;}
+  .gate-back{
+    display:block; margin:20px auto 0; background:none; border:0; color:var(--ink-soft);
+    font-size:13px; text-decoration:underline; cursor:pointer;
+  }
+
+  /* BOARD */
+  .board-outer{
+    width:100%; max-width:880px; margin:36px auto 0;
+    aspect-ratio:1;
+    display:grid;
+    grid-template-columns:repeat(12, 1fr);
+    grid-template-rows:repeat(12, 1fr);
+    gap:3px;
+    background:var(--paper-2);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:8px;
+  }
+  .sq{
+    position:relative;
+    border-radius:5px;
+    display:flex; align-items:center; justify-content:center;
+    color:#fff;
+    cursor:pointer;
+    overflow:hidden;
+    border:0; padding:0;
+    font-family:inherit;
+    transition:filter 0.15s ease, transform 0.15s ease;
+  }
+  .sq:hover, .sq:focus-visible{filter:brightness(1.12); transform:scale(1.06); z-index:2;}
+  .sq-num{
+    position:absolute; top:2px; left:3px;
+    font-size:clamp(6px, 1.05vw, 10px);
+    font-weight:700; opacity:0.85;
+    font-family:'Baloo 2', sans-serif;
+  }
+  .sq-icon svg{width:clamp(8px, 1.7vw, 15px); height:clamp(8px, 1.7vw, 15px); display:block;}
+  .type-corner{background:var(--plum-deep);}
+  .type-milestone{background:var(--teal);}
+  .type-setback{background:var(--setback);}
+  .type-connection{background:var(--blue);}
+  .type-collectible{background:var(--gold-deep);}
+  .type-story{background:var(--pink-deep);}
+  .type-finish{background:linear-gradient(135deg, var(--gold), var(--gold-deep)); box-shadow:inset 0 0 0 2px rgba(255,255,255,0.6);}
+
+  .token{
+    position:absolute;
+    width:60%; height:60%;
+    bottom:2px; right:2px;
+    border-radius:50%;
+    object-fit:cover;
+    border:2px solid #fff;
+    box-shadow:0 2px 5px rgba(0,0,0,0.45);
+    z-index:3;
+    animation:token-drop 0.5s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes token-drop{
+    0%{transform:translateY(-8px) scale(0.6); opacity:0;}
+    100%{transform:translateY(0) scale(1); opacity:1;}
+  }
+
+  .board-center{
+    grid-column:2 / span 10;
+    grid-row:2 / span 10;
+    background:#fff;
+    border-radius:12px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center;
+    padding:clamp(10px, 3vw, 28px);
+    gap:6px;
+  }
+  .board-center-photo{
+    width:clamp(40px, 10vw, 84px); height:clamp(40px, 10vw, 84px);
+    border-radius:50%; object-fit:cover;
+    border:3px solid var(--paper-2);
+    box-shadow:0 4px 10px rgba(42,32,51,0.15);
+    margin-bottom:4px;
+  }
+  .board-center-name{font-family:'Baloo 2', sans-serif; font-weight:700; font-size:clamp(13px, 2.4vw, 18px); color:var(--plum);}
+  .board-center-hint{font-size:clamp(10px, 1.8vw, 13px); color:var(--ink-soft); max-width:26ch;}
+  .center-change{
+    margin-top:8px; background:none; border:0; color:var(--ink-soft);
+    font-size:clamp(9px, 1.6vw, 12px); text-decoration:underline; cursor:pointer;
+  }
+  #center-detail{position:relative; width:100%; max-width:280px;}
+  .center-close{
+    position:absolute; top:-6px; right:-4px;
+    background:var(--paper-2); border:0; border-radius:50%;
+    width:24px; height:24px; font-size:16px; line-height:1; cursor:pointer; color:var(--ink-soft);
+  }
+  .center-detail-tag{
+    display:inline-block;
+    font-family:'Baloo 2', sans-serif; font-weight:700;
+    font-size:clamp(9px, 1.6vw, 11px); letter-spacing:0.03em; text-transform:uppercase;
+    color:#fff; padding:3px 10px; border-radius:999px; margin-bottom:8px;
+  }
+  .center-detail-title{font-family:'Baloo 2', sans-serif; font-weight:700; font-size:clamp(12px, 2.2vw, 16px); color:var(--plum); margin-bottom:6px;}
+  .center-detail-text{font-size:clamp(10px, 1.9vw, 13.5px); color:var(--ink-soft); line-height:1.45;}
+
+  .legend{
+    display:flex; flex-wrap:wrap; gap:8px 18px; justify-content:center;
+    margin-top:26px; max-width:880px; margin-left:auto; margin-right:auto;
+  }
+  .legend-item{display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-soft);}
+  .legend-swatch{width:12px; height:12px; border-radius:3px; flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<header class="game-header">
+  <a href="index.html" class="game-brand">
+    <img src="assets/apple-touch-icon.png" alt="FIRST PLACE ribbon logo">
+    <span>FIRST PLACE</span>
+  </a>
+  <a href="index.html" class="game-home">← Home</a>
+</header>
+
+<div class="game-wrap">
+
+  <!-- SCREEN 1: CHARACTER SELECT -->
+  <section id="screen-select" class="game-screen">
+    <h1 class="game-title">Choose Your Character</h1>
+    <p class="game-sub">Pick who you're playing as — you'll follow their path to the dream.</p>
+    <div class="char-grid">
+      <button type="button" class="char-card" data-character="fran">
+        <img src="assets/product_fran.jpg" alt="Fran">
+        <span class="char-name">Fran</span>
+        <span class="char-dream">Record a bubblegum rap album — music video included.</span>
+      </button>
+      <button type="button" class="char-card" data-character="jeremy">
+        <img src="assets/product_will.jpg" alt="Jeremy">
+        <span class="char-name">Jeremy</span>
+        <span class="char-dream">A ride-along with the cops of Cops.</span>
+      </button>
+      <button type="button" class="char-card" data-character="will">
+        <img src="assets/product_jeremy.jpg" alt="Will">
+        <span class="char-name">Will</span>
+        <span class="char-dream">Write for Star Wars — even the fan fiction legends.</span>
+      </button>
+      <button type="button" class="char-card" data-character="martha">
+        <img src="assets/product_martha.jpg" alt="Martha">
+        <span class="char-name">Martha</span>
+        <span class="char-dream">A speaking tour across the US.</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- SCREEN 2: EMAIL GATE -->
+  <section id="screen-gate" class="game-screen" hidden>
+    <h1 class="game-title">Almost there</h1>
+    <p class="game-sub">Enter your email to unlock the board.</p>
+    <div class="gate-card">
+      <div class="gate-picked" id="gate-picked"></div>
+      <form class="gate-form" id="gate-form" method="post" action="https://app.kit.com/forms/9874369/subscriptions" novalidate>
+        <input type="email" name="email_address" id="gate-email" placeholder="Your email" required aria-label="Email address">
+        <button type="submit" id="gate-submit">Unlock</button>
+      </form>
+      <p class="gate-message" id="gate-message" hidden></p>
+      <button type="button" class="gate-back" id="gate-back">← Pick a different character</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 3: BOARD (static render — no movement yet) -->
+  <section id="screen-board" class="game-screen" hidden>
+    <h1 class="game-title">The Board</h1>
+    <p class="game-sub">44 squares from Moving Day to the Dream, Realized. Tap a square to read it.</p>
+
+    <div class="board-outer" id="board-outer">
+      <div class="board-center" id="board-center">
+        <div id="center-default">
+          <img class="board-center-photo" id="center-photo" src="" alt="">
+          <div class="board-center-name" id="center-name"></div>
+          <p class="board-center-hint">Tap any square to read it.</p>
+          <button type="button" class="center-change" id="change-character">Change character</button>
+        </div>
+        <div id="center-detail" hidden>
+          <button type="button" class="center-close" id="center-close" aria-label="Close">&times;</button>
+          <span class="center-detail-tag" id="detail-tag"></span>
+          <div class="center-detail-title" id="detail-title"></div>
+          <p class="center-detail-text" id="detail-text"></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend" id="board-legend"></div>
+  </section>
+
+</div>
+
+<script>
+(function () {
+  var EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // product_jeremy.jpg / product_will.jpg are swapped relative to their
+  // filenames on this site (product_jeremy.jpg actually depicts Will and
+  // his product; product_will.jpg actually depicts Jeremy and his) — so
+  // these are mapped by actual photo content, not literal filename, to
+  // make sure each character shows their real portrait.
+  var CHARACTERS = {
+    fran:   { name: 'Fran',   photo: 'assets/product_fran.jpg' },
+    jeremy: { name: 'Jeremy', photo: 'assets/product_will.jpg' },
+    will:   { name: 'Will',   photo: 'assets/product_jeremy.jpg' },
+    martha: { name: 'Martha', photo: 'assets/product_martha.jpg' }
+  };
+
+  var TYPE_LABEL = {
+    corner: 'Corner',
+    milestone: 'Milestone',
+    setback: 'Setback',
+    connection: 'Connection',
+    collectible: 'Collectible',
+    story: 'Story Beat',
+    finish: 'Finish'
+  };
+
+  var TYPE_ICON = {
+    corner: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v18"/><path d="M5 4h13l-2 4 2 4H5"/></svg>',
+    milestone: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.6 6.8L12 16.9 5.8 20.4l1.6-6.8L2.2 9l6.9-.7z"/></svg>',
+    setback: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18L18 6M6 6l12 12"/></svg>',
+    connection: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="12" r="2.3"/><circle cx="17" cy="6" r="2.3"/><circle cx="17" cy="18" r="2.3"/><path d="M9 11l6-4M9 13l6 4"/></svg>',
+    collectible: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="1"/><path d="M4 13h16M12 9v11M8 9c0-2 1.5-4 4-4s4 2 4 4"/></svg>',
+    story: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 9 9 0 0 1-4-.9L3 20l1.1-4a8.4 8.4 0 0 1-1.1-4.5 8.4 8.4 0 0 1 8.9-8.4 8.6 8.6 0 0 1 9.1 8.4z"/></svg>',
+    finish: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v18"/><path d="M6 4h4l1 2h7l-2 4 2 4h-7l-1-2H6"/></svg>'
+  };
+
+  // Full 44-square board, transcribed from first-place-board-game-design.md.
+  // "story" squares carry per-character text (resolved at render time).
+  var BOARD_SQUARES = [
+    { n: 1, type: 'corner', label: 'START', title: 'Moving Day', text: 'Boxes everywhere, keys in hand. The journey begins.' },
+    { n: 2, type: 'milestone', text: 'Job interview — nailed it. Advance 2.' },
+    { n: 3, type: 'setback', text: 'Lost your keys already. Lose a turn.' },
+    { n: 4, type: 'connection', text: 'Email 3 friends about First Place. Advance 3.' },
+    { n: 5, type: 'collectible', text: 'Find a Roomie!' },
+    { n: 6, type: 'setback', text: 'Roommate ate your leftovers. Move back 1.' },
+    { n: 7, type: 'milestone', text: "Learned to do laundry without shrinking everything. Advance 2." },
+    { n: 8, type: 'story', text: { fran: 'Studio time booked!', jeremy: "Got the dispatcher's number.", will: 'Email back from a Lucasfilm assistant.', martha: 'First venue says yes.' } },
+    { n: 9, type: 'setback', text: 'Missed the bus. Move back 2.' },
+    { n: 10, type: 'milestone', text: 'Made a new friend at the coffee shop. Advance 2.' },
+    { n: 11, type: 'connection', text: 'Share your board on social. Advance 3.' },
+    { n: 12, type: 'corner', label: 'CHECKPOINT', title: 'Halfway There', text: "The apartment's starting to feel like home." },
+    { n: 13, type: 'setback', text: 'Lost the scissors. Again. Lose a turn.' },
+    { n: 14, type: 'milestone', text: 'First paycheck. Advance 2.' },
+    { n: 15, type: 'collectible', text: 'Find a Roomie!' },
+    { n: 16, type: 'connection', text: 'Invite someone to pick their character. Advance 3.' },
+    { n: 17, type: 'setback', text: 'Wi-Fi went out mid-episode. Move back 1.' },
+    { n: 18, type: 'milestone', text: 'Fixed something broken all by yourself. Advance 2.' },
+    { n: 19, type: 'story', text: { fran: 'Found the right beat.', jeremy: 'Ride-along date confirmed.', will: "Invited into the writers' room chat.", martha: 'Second city added to the tour.' } },
+    { n: 20, type: 'setback', text: 'Got a little lost walking home. Move back 2.' },
+    { n: 21, type: 'milestone', text: 'Aced your budget this month. Advance 2.' },
+    { n: 22, type: 'connection', text: "Tag a friend who'd love this show. Advance 3." },
+    { n: 23, type: 'corner', label: 'ROOMIE GATE', title: "Who's really in this with you?", text: "Need at least 2 Roomies collected to pass. Don't have them? Head back and keep looking." },
+    { n: 24, type: 'milestone', text: "Learned to cook something that wasn't cereal. Advance 2." },
+    { n: 25, type: 'setback', text: 'Spilled coffee on your only clean shirt. Move back 1.' },
+    { n: 26, type: 'collectible', text: 'Find a Roomie!' },
+    { n: 27, type: 'connection', text: 'Leave a comment/review somewhere. Advance 3.' },
+    { n: 28, type: 'setback', text: "Alarm didn't go off. Move back 2." },
+    { n: 29, type: 'milestone', text: 'Got a compliment from your boss. Advance 2.' },
+    { n: 30, type: 'story', text: { fran: 'Recorded the hook.', jeremy: 'Vest fitted, radio clipped on.', will: 'First pages sent for notes.', martha: 'Ticket sales open.' } },
+    { n: 31, type: 'setback', text: 'Tripped in front of the cute neighbor. Lose a turn.' },
+    { n: 32, type: 'milestone', text: 'Walked to the store alone, no big deal. Advance 2.' },
+    { n: 33, type: 'connection', text: 'Recommend the show to a coworker. Advance 3.' },
+    { n: 34, type: 'corner', label: 'FINAL STRETCH', title: 'So Close', text: "The dream's almost in reach." },
+    { n: 35, type: 'milestone', text: 'Found your favorite coffee shop. Advance 2.' },
+    { n: 36, type: 'setback', text: 'Forgot your umbrella. Move back 1.' },
+    { n: 37, type: 'collectible', text: 'Find a Roomie!' },
+    { n: 38, type: 'connection', text: 'Text a friend "guess what I\'m doing." Advance 3.' },
+    { n: 39, type: 'setback', text: 'Roommate drama, round 2. Move back 2.' },
+    { n: 40, type: 'milestone', text: 'Hit a personal goal you set for yourself. Advance 2.' },
+    { n: 41, type: 'story', text: { fran: 'The beat drops.', jeremy: 'Radio call comes in — go time.', will: 'The whiteboard fills up.', martha: 'The arena lights come up.' } },
+    { n: 42, type: 'setback', text: 'One more thing goes wrong, because life. Lose a turn.' },
+    { n: 43, type: 'connection', text: 'Share your board one more time. Advance 3.' },
+    { n: 44, type: 'finish', label: 'FINISH', title: 'The Dream, Realized.', text: 'Reveals your dream photo, a final story beat, and a direct pledge link.' }
+  ];
+
+  // Perimeter walk around a 12x12 grid outline: squares 1-12 along the
+  // bottom (L->R), 12-23 up the right side, 23-34 along the top (R->L),
+  // 34-44 down the left side back toward square 1. Corners (1, 12, 23,
+  // 34) are shared between two sides.
+  function squarePosition(n) {
+    if (n <= 12) return { col: n, row: 12 };
+    if (n <= 23) return { col: 12, row: 24 - n };
+    if (n <= 34) return { col: 35 - n, row: 1 };
+    return { col: 1, row: n - 33 };
+  }
+
+  var screens = {
+    select: document.getElementById('screen-select'),
+    gate: document.getElementById('screen-gate'),
+    board: document.getElementById('screen-board')
+  };
+
+  function showScreen(name) {
+    Object.keys(screens).forEach(function (k) { screens[k].hidden = (k !== name); });
+    window.scrollTo(0, 0);
+  }
+
+  function getCharacterKey() {
+    var key = localStorage.getItem('gameCharacter');
+    return CHARACTERS[key] ? key : null;
+  }
+
+  // ---------- Screen 1: character select ----------
+  document.querySelectorAll('.char-card').forEach(function (card) {
+    card.addEventListener('click', function () {
+      localStorage.setItem('gameCharacter', card.getAttribute('data-character'));
+      proceedAfterCharacter();
+    });
+  });
+
+  function proceedAfterCharacter() {
+    if (localStorage.getItem('hasEnteredEmail') === 'true') {
+      renderBoard();
+      showScreen('board');
+    } else {
+      renderGatePicked();
+      showScreen('gate');
+    }
+  }
+
+  // ---------- Screen 2: email gate (reuses the site's existing
+  // confirmed-subscriber check + Kit double opt-in flow) ----------
+  function renderGatePicked() {
+    var key = getCharacterKey();
+    var el = document.getElementById('gate-picked');
+    if (!key) { el.innerHTML = ''; return; }
+    var c = CHARACTERS[key];
+    el.innerHTML = '<img src="' + c.photo + '" alt="' + c.name + '"><span>Playing as ' + c.name + '</span>';
+  }
+
+  document.getElementById('gate-back').addEventListener('click', function () {
+    showScreen('select');
+  });
+
+  (function initGate() {
+    var form = document.getElementById('gate-form');
+    var emailInput = document.getElementById('gate-email');
+    var submitBtn = document.getElementById('gate-submit');
+    var messageEl = document.getElementById('gate-message');
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var email = emailInput.value.trim();
+
+      messageEl.hidden = true;
+      emailInput.classList.remove('invalid');
+
+      if (!email || !EMAIL_PATTERN.test(email)) {
+        messageEl.textContent = 'Please enter a valid email address.';
+        messageEl.className = 'gate-message error';
+        messageEl.hidden = false;
+        emailInput.classList.add('invalid');
+        emailInput.focus();
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Checking…';
+
+      // Same fast path as the homepage/shop gates: an already-confirmed
+      // Kit subscriber skips straight through, no email needed.
+      fetch('/api/check-subscriber', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
+      })
+        .then(function (res) { return res.ok ? res.json() : { confirmed: false }; })
+        .catch(function () { return { confirmed: false }; })
+        .then(function (data) {
+          if (data && data.confirmed) {
+            localStorage.setItem('hasEnteredEmail', 'true');
+            renderBoard();
+            showScreen('board');
+            return;
+          }
+
+          var formData = new FormData();
+          formData.append('email_address', email);
+
+          // So confirmed.html knows to bounce back here (instead of its
+          // shop.html default) once this visitor clicks the confirmation
+          // link in Kit's email.
+          localStorage.setItem('pendingGateReturn', 'game.html');
+
+          return fetch(form.action, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' },
+            body: formData
+          }).then(function (res) {
+            if (!res.ok) throw new Error('Submission failed');
+            localStorage.setItem('hasEnteredEmail', 'true');
+            form.hidden = true;
+            messageEl.textContent = 'Check your email to come on in.';
+            messageEl.className = 'gate-message success';
+            messageEl.hidden = false;
+          });
+        })
+        .catch(function () {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Unlock';
+          messageEl.textContent = 'Something went wrong — please try again.';
+          messageEl.className = 'gate-message error';
+          messageEl.hidden = false;
+        });
+    });
+  })();
+
+  // ---------- Screen 3: static board render ----------
+  function renderBoard() {
+    var key = getCharacterKey() || 'fran';
+    var c = CHARACTERS[key];
+
+    document.getElementById('center-photo').src = c.photo;
+    document.getElementById('center-photo').alt = c.name;
+    document.getElementById('center-name').textContent = 'Playing as ' + c.name;
+
+    var outer = document.getElementById('board-outer');
+    outer.querySelectorAll('.sq').forEach(function (el) { el.remove(); });
+    var centerPanel = document.getElementById('board-center');
+
+    BOARD_SQUARES.forEach(function (sq) {
+      var pos = squarePosition(sq.n);
+      var el = document.createElement('button');
+      el.type = 'button';
+      el.className = 'sq type-' + sq.type;
+      el.style.gridColumn = pos.col;
+      el.style.gridRow = pos.row;
+      el.setAttribute('aria-label', 'Square ' + sq.n + (sq.label ? ': ' + sq.label : ''));
+
+      var numEl = document.createElement('span');
+      numEl.className = 'sq-num';
+      numEl.textContent = sq.n;
+      el.appendChild(numEl);
+
+      var iconEl = document.createElement('span');
+      iconEl.className = 'sq-icon';
+      iconEl.innerHTML = TYPE_ICON[sq.type] || '';
+      el.appendChild(iconEl);
+
+      if (sq.n === 1) {
+        var token = document.createElement('img');
+        token.className = 'token';
+        token.src = c.photo;
+        token.alt = c.name + "'s token";
+        el.appendChild(token);
+      }
+
+      el.addEventListener('click', function () { showSquareDetail(sq, key); });
+
+      outer.insertBefore(el, centerPanel);
+    });
+
+    renderLegend();
+  }
+
+  function showSquareDetail(sq, characterKey) {
+    document.getElementById('center-default').hidden = true;
+    var detail = document.getElementById('center-detail');
+    detail.hidden = false;
+
+    var tag = document.getElementById('detail-tag');
+    tag.textContent = TYPE_LABEL[sq.type];
+    tag.className = 'center-detail-tag type-' + sq.type;
+
+    var titleParts = [];
+    if (sq.label) titleParts.push(sq.label);
+    if (sq.title) titleParts.push(sq.title);
+    document.getElementById('detail-title').textContent =
+      (titleParts.length ? titleParts.join(' — ') : 'Square ' + sq.n);
+
+    var text = typeof sq.text === 'object' ? sq.text[characterKey] : sq.text;
+    document.getElementById('detail-text').textContent = 'Square ' + sq.n + '. ' + (text || '');
+  }
+
+  document.getElementById('center-close').addEventListener('click', function () {
+    document.getElementById('center-detail').hidden = true;
+    document.getElementById('center-default').hidden = false;
+  });
+
+  document.getElementById('change-character').addEventListener('click', function () {
+    localStorage.removeItem('gameCharacter');
+    showScreen('select');
+  });
+
+  function renderLegend() {
+    var legend = document.getElementById('board-legend');
+    if (legend.children.length) return; // build once
+    Object.keys(TYPE_LABEL).forEach(function (type) {
+      var item = document.createElement('span');
+      item.className = 'legend-item';
+      item.innerHTML = '<span class="legend-swatch type-' + type + '"></span>' + TYPE_LABEL[type];
+      legend.appendChild(item);
+    });
+  }
+
+  // ---------- Initial screen on load ----------
+  var storedCharacter = getCharacterKey();
+  if (!storedCharacter) {
+    showScreen('select');
+  } else if (localStorage.getItem('hasEnteredEmail') === 'true') {
+    renderBoard();
+    showScreen('board');
+  } else {
+    renderGatePicked();
+    showScreen('gate');
+  }
+})();
+</script>
+
+</body>
+</html>

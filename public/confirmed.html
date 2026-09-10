@@ -93,14 +93,28 @@
 <div class="confirm-card">
   <img class="confirm-logo" src="assets/apple-touch-icon.png" alt="FIRST PLACE ribbon logo">
   <h1>You're in!</h1>
-  <p>Taking you to the shop&hellip;</p>
-  <p class="redirect-note">Not redirecting? <a href="shop.html?unlocked=1">Go to the shop →</a></p>
+  <p id="confirm-lead">Taking you to the shop&hellip;</p>
+  <p class="redirect-note">Not redirecting? <a href="shop.html?unlocked=1" id="redirect-link">Go to the shop →</a></p>
 </div>
 
 <script>
   localStorage.setItem('hasEnteredEmail', 'true');
+
+  // A gate that isn't the shop page (e.g. /game) can set this right before
+  // handing off to Kit, so this lands back where the visitor actually
+  // started instead of always defaulting to the shop.
+  var returnTo = localStorage.getItem('pendingGateReturn') || 'shop.html?unlocked=1';
+  localStorage.removeItem('pendingGateReturn');
+
+  if (returnTo !== 'shop.html?unlocked=1') {
+    var link = document.getElementById('redirect-link');
+    link.href = returnTo;
+    link.textContent = 'Continue →';
+    document.getElementById('confirm-lead').innerHTML = 'Taking you back&hellip;';
+  }
+
   window.setTimeout(function () {
-    window.location.href = 'shop.html?unlocked=1';
+    window.location.href = returnTo;
   }, 1800);
 </script>
 
