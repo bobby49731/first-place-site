@@ -521,13 +521,13 @@
   .doubt-card-action:hover{background:#E8E2EF;}
   .doubt-card-action[hidden]{display:none;}
 
-  /* THE DOUBT'S VOICE — small, quick quote bubble near his die, shown
-     every turn except a catch turn (the doubt-overlay "caught" moment
-     takes over instead that turn). Tap-required, like every other
-     card. */
+  /* THE DOUBT'S VOICE — small, quick quote bubble that hovers above his
+     own token wherever it currently sits on the board (position set
+     inline by JS, not fixed here), shown every turn except a catch
+     turn (the doubt-overlay "caught" moment takes over instead that
+     turn). Paired with the player's own .doubt-response button below. */
   .doubt-voice{
     position:absolute;
-    left:78%; top:28%;
     transform:translate(-50%, -50%) scale(0.9);
     width:min(76%, 210px);
     background:#17121D;
@@ -541,6 +541,7 @@
     box-shadow:0 10px 24px rgba(0,0,0,0.4);
     z-index:9;
     opacity:0;
+    pointer-events:none;
     transition:opacity 0.25s ease, transform 0.25s ease;
   }
   .doubt-voice[hidden]{display:none;}
@@ -551,15 +552,34 @@
     border-left:6px solid transparent; border-right:6px solid transparent;
     border-top:6px solid #17121D;
   }
-  .doubt-voice-action{
-    display:block; margin:10px auto 0;
-    background:#EDE7F2; color:#17121D; border:0;
-    padding:6px 18px; border-radius:8px;
+
+  /* THE PLAYER'S RESPONSE — a white button (not a dark quote bubble)
+     hovering above the player's own token, showing the comeback line
+     paired (by matching index) with whichever insult The Doubt just
+     said. Tapping it dismisses both and hands flow back to the dice. */
+  .doubt-response{
+    position:absolute;
+    transform:translate(-50%, -50%) scale(0.9);
+    width:max-content;
+    max-width:min(80%, 230px);
+    background:#fff;
+    color:var(--plum);
+    border:0;
+    border-radius:999px;
+    padding:9px 18px;
     font-family:'Baloo 2', sans-serif; font-weight:700;
-    font-size:clamp(10px, 1.8vw, 11.5px);
-    cursor:pointer; transition:background 0.2s ease;
+    font-size:clamp(10.5px, 2vw, 12.5px);
+    text-align:center;
+    cursor:pointer;
+    box-shadow:0 10px 22px rgba(42,32,51,0.32);
+    z-index:9;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.25s ease, transform 0.25s ease, background 0.15s ease;
   }
-  .doubt-voice-action:hover{background:#fff;}
+  .doubt-response[hidden]{display:none;}
+  .doubt-response.open{opacity:1; transform:translate(-50%, -50%) scale(1); pointer-events:auto;}
+  .doubt-response:hover{background:#F5F0FA;}
 
   /* CHARACTER SELECT headline — bolder and darker than the default
      .game-sub (which stays soft/muted for the gate and board screens). */
@@ -740,15 +760,17 @@
         ROOMIE WALL: visual home for the Roomie collection system.
         Covers the mug-and-keys illustration baked into the board image
         once the first roll happens; the logo/tagline above are higher
-        up in the image and untouched. The shelf art (shelf-empty.png)
-        already has all 16 item silhouettes baked in as empty slots, in
-        the same 1-16 order as ROOMIE_POOL (row-major, 4x4) — collected
-        Roomies are laid over their matching silhouette by JS.
+        up in the image and untouched. The shelf art (shelf-blank.png)
+        has NO baked-in silhouettes — empty cubbies stay genuinely
+        empty, and a collected Roomie's own full-color image is the
+        only thing ever drawn into its slot, with nothing underneath
+        to muddy it. Slot order is the same 1-16 as ROOMIE_POOL
+        (row-major, 4x4).
       -->
       <div class="roomie-wall" id="roomie-wall" hidden>
         <div class="roomie-wall-title">Roomie Wall <span>— collect them all</span></div>
         <div class="roomie-shelf" id="roomie-shelf">
-          <img class="roomie-shelf-bg" src="assets/game/roomies/shelf-empty.png" alt="Roomie shelf">
+          <img class="roomie-shelf-bg" src="assets/game/roomies/shelf-blank.png" alt="Roomie shelf">
         </div>
       </div>
 
@@ -795,16 +817,18 @@
       </div>
 
       <!--
-        THE DOUBT'S VOICE — small and quick, appears near his die each
-        turn (alongside the player's own reveal card, not replacing it)
-        except on a catch turn, where the doubt-overlay "caught" moment
-        takes over instead. Requires a tap to continue, like every other
-        card.
+        THE DOUBT'S VOICE — small and quick, hovers above his own token
+        wherever it currently sits on the board (not near the dice),
+        every turn except a catch turn (the doubt-overlay "caught"
+        moment takes over instead). Paired with a white response button
+        that hovers above the PLAYER's own token — tapping it dismisses
+        both and hands flow back to the dice, same as the old plain
+        Continue button did.
       -->
       <div class="doubt-voice" id="doubt-voice" hidden>
         <span id="doubt-voice-text"></span>
-        <button type="button" class="doubt-voice-action" id="doubt-voice-action">Continue</button>
       </div>
+      <button type="button" class="doubt-response" id="doubt-response" hidden></button>
     </div>
 
     <p class="roll-result" id="roll-result" hidden></p>
@@ -897,8 +921,8 @@
   // ---------- Roomies: one shared 16-slot collection per PLAYER
   // (localStorage-level), not per character — collecting Roomie #4 as
   // Fran keeps it collected after switching to play as Jeremy. The pool
-  // and its order below matches the shelf art's own baked-in silhouette
-  // layout (assets/game/roomies/shelf-empty.png), row-major 4x4. ----------
+  // and its order below matches the shelf art's own slot layout
+  // (assets/game/roomies/shelf-blank.png), row-major 4x4. ----------
   var ROOMIE_POOL = [
     { id: 1, name: "Martha's Pencelet", img: 'roomie-01.png' },
     { id: 2, name: "Martha's Diva Dome", img: 'roomie-02.png' },
@@ -1167,6 +1191,18 @@
     var card = document.getElementById('reveal-card');
     card.style.left = leftPct + '%';
     card.style.top = topPct + '%';
+  }
+
+  // Small floating bubble/button, hovering just above whatever square's
+  // token it's attached to (The Doubt's insult line above his own token,
+  // the player's response button above theirs) — much smaller than the
+  // reveal card, so a looser clamp is enough to keep it on the board.
+  function positionFloatingAboveSquare(el, square, liftPct) {
+    var p = cellPercent(square);
+    var leftPct = Math.max(6, Math.min(94, p.left));
+    var topPct = Math.max(3, Math.min(94, 100 - p.bottom - liftPct));
+    el.style.left = leftPct + '%';
+    el.style.top = topPct + '%';
   }
 
   var screens = {
@@ -1670,36 +1706,81 @@
 
   // ---------- The Doubt's voice — small and quick, shown every
   // non-catch turn alongside (right after) the player's own reveal
-  // card, never blocking it. Requires a tap to continue, like every
-  // other card. Rotates through the three design-doc lines in order. ----------
+  // card, never blocking it. Rotates sequentially through 16 insult
+  // lines (never repeating one immediately back-to-back, since each
+  // turn just advances the shared index by one). Each insult is paired
+  // by matching index with its own comeback line, shown on a white
+  // response button that stands in for the old plain Continue button —
+  // tapping it dismisses both and hands flow back to the dice. ----------
   var DOUBT_LINES = [
-    "You'll never finish this.",
-    "Nobody's really watching.",
-    "You can't do this alone."
+    "You're not good enough.",
+    "Are you kidding me? Never going to work.",
+    "You think you've got a chance?",
+    "Give up.",
+    "Who do you think you are?",
+    "Nobody cares.",
+    "You're gonna fail.",
+    "This is embarrassing.",
+    "You're wasting your time.",
+    "They're laughing at you.",
+    "You're not ready.",
+    "Someone already did it better.",
+    "What if you blow it?",
+    "You don't belong here.",
+    "Be realistic.",
+    "Just quit."
+  ];
+  var DOUBT_RESPONSES = [
+    "Good enough to start.",
+    "Only one way to find out.",
+    "Yep. Watch me.",
+    "Nah. Keep going.",
+    "Someone who gets to try.",
+    "I care. That counts.",
+    "Maybe. I'm going anyway.",
+    "Embarrassment won't kill you.",
+    "It's my time.",
+    "Let 'em laugh.",
+    "Ready enough.",
+    "They didn't do mine.",
+    "What if I don't?",
+    "I'm already here.",
+    "Dreams are real too.",
+    "Not today."
   ];
 
-  function nextDoubtLine() {
-    var idx = parseInt(localStorage.getItem('doubtLineIndex') || '0', 10);
-    var line = DOUBT_LINES[idx % DOUBT_LINES.length];
+  function nextDoubtLineIndex() {
+    var idx = parseInt(localStorage.getItem('doubtLineIndex') || '0', 10) % DOUBT_LINES.length;
     localStorage.setItem('doubtLineIndex', String((idx + 1) % DOUBT_LINES.length));
-    return line;
+    return idx;
   }
 
-  function showDoubtVoice(line, onDone) {
+  function showDoubtVoice(doubtSquare, playerSquare, onDone) {
+    var idx = nextDoubtLineIndex();
     var voice = document.getElementById('doubt-voice');
-    var action = document.getElementById('doubt-voice-action');
-    document.getElementById('doubt-voice-text').textContent = '“' + line + '”';
+    var response = document.getElementById('doubt-response');
+
+    document.getElementById('doubt-voice-text').textContent = '“' + DOUBT_LINES[idx] + '”';
+    positionFloatingAboveSquare(voice, doubtSquare, 9);
     voice.hidden = false;
     void voice.offsetWidth; // restart the pop-in if it's showing again quickly
     voice.classList.add('open');
 
+    response.textContent = DOUBT_RESPONSES[idx];
+    positionFloatingAboveSquare(response, playerSquare, 9);
+    response.hidden = false;
+    void response.offsetWidth;
+    response.classList.add('open');
+
     var closed = false;
-    action.onclick = function () {
+    response.onclick = function () {
       if (closed) return;
       closed = true;
       voice.classList.remove('open');
+      response.classList.remove('open');
       window.setTimeout(function () {
         voice.hidden = true;
+        response.hidden = true;
         onDone();
       }, 260);
     };
@@ -1771,7 +1852,7 @@
             if (!localStorage.getItem('gameSquare') || parseInt(localStorage.getItem('gameSquare'), 10) !== playerOutcome.finalSquare) {
               localStorage.setItem('gameSquare', String(playerOutcome.finalSquare));
             }
-            showDoubtVoice(nextDoubtLine(), onDone);
+            showDoubtVoice(doubtTo, playerOutcome.finalSquare, onDone);
           }
         }, 400);
       }, 300);

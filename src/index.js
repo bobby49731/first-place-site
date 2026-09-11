@@ -42,58 +42,71 @@
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const SITE_URL = 'https://watchfirstplace.com';
-const INVITE_FROM = 'First Place <invites@watchfirstplace.com>';
+// Sent as "the First Place team," not the individual player — same
+// identity as Kit's confirmation email — since the player's own name
+// isn't captured anywhere in this flow.
+const INVITE_FROM = 'The First Place Team <invites@watchfirstplace.com>';
 const RESEND_API_URL = 'https://api.resend.com/emails';
+
+// Shared body copy, reused (with small per-square variations) across
+// every template below.
+const CORE_TEXT = "Hey — have you checked out First Place? It's a new show " +
+  'about autistic folks and people with Down syndrome moving out and ' +
+  'living independently for the first time. Heartwarming, funny, real. ' +
+  'Thought of you.';
+const CORE_HTML = '<p>Hey &mdash; have you checked out <strong>First Place</strong>? ' +
+  'It&rsquo;s a new show about autistic folks and people with Down syndrome ' +
+  'moving out and living independently for the first time. Heartwarming, ' +
+  'funny, real. Thought of you.</p>';
+
+const SEEN_TEXT = 'Have you seen this yet? First Place is a new show about ' +
+  'autistic folks and people with Down syndrome moving out and living ' +
+  'independently for the first time. Heartwarming, funny, real. Thought ' +
+  'of you.';
+const SEEN_HTML = '<p>Have you seen this yet? <strong>First Place</strong> is a new ' +
+  'show about autistic folks and people with Down syndrome moving out and ' +
+  'living independently for the first time. Heartwarming, funny, real. ' +
+  'Thought of you.</p>';
+
+const GAME_LINE_TEXT = "There's a little game on the site too — you should pick a character.";
+const GAME_LINE_HTML = '<p>There&rsquo;s a little game on the site too &mdash; you should ' +
+  'pick a character.</p>';
+
+const LINK_TEXT = 'Check it out here: ' + SITE_URL;
+const LINK_HTML = '<p>Check it out here: <a href="' + SITE_URL + '">' + SITE_URL + '</a></p>';
 
 // One entry per email-invite square: how many recipient fields the client
 // shows, and the subject/body actually sent (server-authoritative).
 const INVITE_TEMPLATES = {
   4: {
     count: 3,
-    subject: 'Come play First Place with me!',
-    text: "Hey! I've been playing First Place — a quick board game about " +
-      "moving out and (barely) making it on your own. Thought you'd get a " +
-      'kick out of it.\n\nCheck it out: ' + SITE_URL,
-    html: '<p>Hey! I&rsquo;ve been playing <strong>First Place</strong> &mdash; a quick ' +
-      'board game about moving out and (barely) making it on your own. ' +
-      'Thought you&rsquo;d get a kick out of it.</p>' +
-      '<p><a href="' + SITE_URL + '">' + SITE_URL + '</a></p>'
+    subject: 'Thought of you — check this out',
+    text: CORE_TEXT + '\n\n' + LINK_TEXT,
+    html: CORE_HTML + LINK_HTML
   },
   16: {
     count: 1,
-    subject: 'Pick your character in First Place',
-    text: "I'm playing First Place and thought of you — come pick your " +
-      'character and play along.\n\n' + SITE_URL,
-    html: '<p>I&rsquo;m playing <strong>First Place</strong> and thought of you &mdash; ' +
-      'come pick your character and play along.</p>' +
-      '<p><a href="' + SITE_URL + '">' + SITE_URL + '</a></p>'
+    subject: 'Thought of you — check this out',
+    text: CORE_TEXT + '\n\n' + GAME_LINE_TEXT + '\n\n' + LINK_TEXT,
+    html: CORE_HTML + GAME_LINE_HTML + LINK_HTML
   },
   22: {
     count: 1,
-    subject: "You'd love this show",
-    text: "Tagging you because I think you'd genuinely love First Place. " +
-      'Take a look:\n\n' + SITE_URL,
-    html: '<p>Tagging you because I think you&rsquo;d genuinely love <strong>First ' +
-      'Place</strong>. Take a look:</p>' +
-      '<p><a href="' + SITE_URL + '">' + SITE_URL + '</a></p>'
+    subject: 'You need to see this',
+    text: CORE_TEXT + '\n\n' + LINK_TEXT,
+    html: CORE_HTML + LINK_HTML
   },
   33: {
     count: 1,
-    subject: 'A show recommendation for you',
-    text: 'Wanted to pass this along — I think you’d like First Place. ' +
-      'Worth a look:\n\n' + SITE_URL,
-    html: '<p>Wanted to pass this along &mdash; I think you&rsquo;d like <strong>First ' +
-      'Place</strong>. Worth a look:</p>' +
-      '<p><a href="' + SITE_URL + '">' + SITE_URL + '</a></p>'
+    subject: 'Thought of you — check this out',
+    text: SEEN_TEXT + '\n\n' + LINK_TEXT,
+    html: SEEN_HTML + LINK_HTML
   },
   38: {
     count: 1,
     subject: "Guess what I'm doing",
-    text: "Guess what I'm doing... playing First Place. Come see what it's " +
-      'about:\n\n' + SITE_URL,
-    html: '<p>Guess what I&rsquo;m doing&hellip; playing <strong>First Place</strong>. Come ' +
-      'see what it&rsquo;s about:</p>' +
-      '<p><a href="' + SITE_URL + '">' + SITE_URL + '</a></p>'
+    text: CORE_TEXT + '\n\n' + LINK_TEXT,
+    html: CORE_HTML + LINK_HTML
   }
 };
 
