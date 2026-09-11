@@ -801,47 +801,47 @@
   // ("pure narrative momentum").
   var BOARD_SQUARES = [
     { n: 1, type: 'corner', label: 'START', text: 'Boxes everywhere, keys in hand. The journey begins.' },
-    { n: 2, type: 'milestone', text: 'Job interview — nailed it. Advance 2.' },
-    { n: 3, type: 'setback', text: 'Lost your keys already. Lose a turn.' },
+    { n: 2, type: 'milestone', text: "Answered every question like you'd rehearsed it in the mirror (you had). Job interview — nailed it. Advance 2." },
+    { n: 3, type: 'setback', text: 'Fifteen minutes patting every pocket, retracing every step — nowhere. Lost your keys already. Lose a turn.' },
     { n: 4, type: 'connection', text: 'Email 3 friends about First Place. Advance 3.' },
     { n: 5, type: 'collectible', text: 'Find a Roomie!' },
-    { n: 6, type: 'setback', text: 'Roommate ate your leftovers. Move back 1.' },
-    { n: 7, type: 'milestone', text: 'Learned to do laundry without shrinking everything. Advance 2.' },
+    { n: 6, type: 'setback', text: 'You were saving that for lunch. Your roommate had other ideas. Move back 1.' },
+    { n: 7, type: 'milestone', text: 'One load down, zero doll-sized sweaters to show for it. Learned to do laundry without shrinking everything. Advance 2.' },
     { n: 8, type: 'story', text: { fran: 'Studio time booked!', jeremy: "Got the dispatcher's number.", will: 'Email back from a Lucasfilm assistant.', martha: 'First venue says yes.' } },
-    { n: 9, type: 'setback', text: 'Missed the bus. Move back 2.' },
-    { n: 10, type: 'milestone', text: 'Made a new friend at the coffee shop. Advance 2.' },
+    { n: 9, type: 'setback', text: 'Ran the whole block, watched it pull away anyway. Missed the bus. Move back 2.' },
+    { n: 10, type: 'milestone', text: 'Traded names with the regular two seats over — small talk turned into an actual friend. Made a new friend at the coffee shop. Advance 2.' },
     { n: 11, type: 'connection', text: 'Share your board on social. Advance 3.' },
     { n: 12, type: 'corner', label: 'CHECKPOINT', text: "The apartment's starting to feel like home." },
-    { n: 13, type: 'setback', text: 'Lost the scissors. Again. Lose a turn.' },
-    { n: 14, type: 'milestone', text: 'First paycheck. Advance 2.' },
+    { n: 13, type: 'setback', text: "You just had them. You SWEAR you just had them. Lost the scissors. Again. Lose a turn." },
+    { n: 14, type: 'milestone', text: 'First paycheck. Direct deposit never felt so real. Advance 2.' },
     { n: 15, type: 'collectible', text: 'Find a Roomie!' },
     { n: 16, type: 'connection', text: 'Invite someone to pick their character. Advance 3.' },
-    { n: 17, type: 'setback', text: 'Wi-Fi went out mid-episode. Move back 1.' },
-    { n: 18, type: 'milestone', text: 'Fixed something broken all by yourself. Advance 2.' },
+    { n: 17, type: 'setback', text: 'Right at the big reveal, naturally. Wi-Fi went out mid-episode. Move back 1.' },
+    { n: 18, type: 'milestone', text: 'No calling for backup this time — fixed something broken all by yourself. Advance 2.' },
     { n: 19, type: 'story', text: { fran: 'Found the right beat.', jeremy: 'Ride-along date confirmed.', will: "Invited into the writers' room chat.", martha: 'Second city added to the tour.' } },
-    { n: 20, type: 'setback', text: 'Got a little lost walking home. Move back 2.' },
-    { n: 21, type: 'milestone', text: 'Aced your budget this month. Advance 2.' },
+    { n: 20, type: 'setback', text: 'Every block looked the same until suddenly none of them did. Got a little lost walking home. Move back 2.' },
+    { n: 21, type: 'milestone', text: 'Checked the numbers, and for once nothing made you wince. Aced your budget this month. Advance 2.' },
     { n: 22, type: 'connection', text: "Tag a friend who'd love this show. Advance 3." },
     { n: 23, type: 'corner', label: 'ROOMIE GATE', text: "Need at least 2 Roomies collected to pass. Don't have them? Head back and keep looking." },
-    { n: 24, type: 'milestone', text: "Learned to cook something that wasn't cereal. Advance 2." },
-    { n: 25, type: 'setback', text: 'Spilled coffee on your only clean shirt. Move back 1.' },
+    { n: 24, type: 'milestone', text: "Vegetables, seasoning, an actual recipe — learned to cook something that wasn't cereal. Advance 2." },
+    { n: 25, type: 'setback', text: 'The one shirt without a single stain — gone in one clumsy sip. Spilled coffee on your only clean shirt. Move back 1.' },
     { n: 26, type: 'collectible', text: 'Find a Roomie!' },
     { n: 27, type: 'connection', text: 'Leave a comment/review somewhere. Advance 3.' },
-    { n: 28, type: 'setback', text: "Alarm didn't go off. Move back 2." },
-    { n: 29, type: 'milestone', text: 'Got a compliment from your boss. Advance 2.' },
+    { n: 28, type: 'setback', text: "Slept right through it, phone silently judging you from the nightstand. Alarm didn't go off. Move back 2." },
+    { n: 29, type: 'milestone', text: 'Unprompted, no less. Got a compliment from your boss. Advance 2.' },
     { n: 30, type: 'story', text: { fran: 'Recorded the hook.', jeremy: 'Vest fitted, radio clipped on.', will: 'First pages sent for notes.', martha: 'Ticket sales open.' } },
-    { n: 31, type: 'setback', text: 'Tripped in front of the cute neighbor. Lose a turn.' },
-    { n: 32, type: 'milestone', text: 'Walked to the store alone, no big deal. Advance 2.' },
+    { n: 31, type: 'setback', text: "Smooth as ever — if 'smooth' means face-first near someone cute. Tripped in front of the cute neighbor. Lose a turn." },
+    { n: 32, type: 'milestone', text: 'Down the street and back, completely uneventful — and that\'s exactly the point. Walked to the store alone, no big deal. Advance 2.' },
     { n: 33, type: 'connection', text: 'Recommend the show to a coworker. Advance 3.' },
     { n: 34, type: 'corner', label: 'FINAL STRETCH', text: "The dream's almost in reach." },
-    { n: 35, type: 'milestone', text: 'Found your favorite coffee shop. Advance 2.' },
-    { n: 36, type: 'setback', text: 'Forgot your umbrella. Move back 1.' },
+    { n: 35, type: 'milestone', text: 'The one that gets your order right without asking twice. Found your favorite coffee shop. Advance 2.' },
+    { n: 36, type: 'setback', text: "Of course it's raining, and of course you left it by the door. Forgot your umbrella. Move back 1." },
     { n: 37, type: 'collectible', text: 'Find a Roomie!' },
     { n: 38, type: 'connection', text: 'Text a friend "guess what I\'m doing." Advance 3.' },
-    { n: 39, type: 'setback', text: 'Roommate drama, round 2. Move back 2.' },
-    { n: 40, type: 'milestone', text: 'Hit a personal goal you set for yourself. Advance 2.' },
+    { n: 39, type: 'setback', text: "Round two of the group chat argument nobody wanted. Roommate drama, round 2. Move back 2." },
+    { n: 40, type: 'milestone', text: "Nobody assigned it, nobody's grading it, you did it anyway. Hit a personal goal you set for yourself. Advance 2." },
     { n: 41, type: 'story', text: { fran: 'The beat drops.', jeremy: 'Radio call comes in — go time.', will: 'The whiteboard fills up.', martha: 'The arena lights come up.' } },
-    { n: 42, type: 'setback', text: 'One more thing goes wrong, because life. Lose a turn.' },
+    { n: 42, type: 'setback', text: 'Nothing dramatic, just the universe piling on today. One more thing goes wrong, because life. Lose a turn.' },
     { n: 43, type: 'connection', text: 'Share your board one more time. Advance 3.' },
     { n: 44, type: 'finish', label: 'FINISH', text: 'The Dream, Realized.' }
   ];
@@ -905,6 +905,44 @@
     var pick = available[Math.floor(Math.random() * available.length)];
     addCollectedRoomie(pick.id);
     return pick;
+  }
+
+  // A small extra chance of a Roomie on ANY square's landing, not just
+  // the 4 dedicated collectible ones — rolled fresh after that square's
+  // own effect has already resolved, on top of whatever it already did.
+  // Shows the same reveal-card treatment (own art, tap to continue) and
+  // falls back to the same "shelf's already full" bonus-hop-forward
+  // behavior the dedicated squares already use once all 16 are owned.
+  var BONUS_ROOMIE_CHANCE = 0.12; // ~10-15%
+
+  function maybeBonusRoomie(outcome, characterKey, onDone) {
+    if (Math.random() >= BONUS_ROOMIE_CHANCE) { onDone(); return; }
+
+    var square = outcome.finalSquare;
+    var awarded = awardRandomRoomie();
+    var bonusOutcome = {
+      landedSquare: square,
+      landedType: 'collectible',
+      landedLabel: 'Bonus Roomie!',
+      finalSquare: awarded ? square : Math.min(44, square + 1),
+      loseTurn: false,
+      landedText: awarded
+        ? 'A little extra luck along the way — you picked up ' + awarded.name + '.'
+        : "The shelf's already full — all 16 Roomies are yours! Bonus hop forward.",
+      landedRoomie: awarded
+    };
+
+    showRevealCard(bonusOutcome, characterKey, function () {
+      if (bonusOutcome.finalSquare !== square) {
+        outcome.finalSquare = bonusOutcome.finalSquare; // keep the real outcome in sync
+        window.setTimeout(function () {
+          placeToken(bonusOutcome.finalSquare);
+          window.setTimeout(onDone, 500);
+        }, 200);
+      } else {
+        onDone();
+      }
+    });
   }
 
   // "Only the square you land on via your move/spin triggers its effect.
@@ -1159,14 +1197,18 @@
     showScreen('board');
   }
 
-  // ---------- Dice popper ----------
+  // ---------- Dice popper — a 4-sided die (1-4), not the original 6.
+  // Slows the overall pace and means more of the board's own squares
+  // (story beats, setbacks, the works) actually get landed on and seen
+  // rather than skipped past. Reuses the same pip layout a normal d6
+  // uses for its own 1-4 faces — there was never a hidden die shape
+  // here, just this pip table, so trimming it to four entries is the
+  // whole change. ----------
   var DIE_FACES = {
     1: ['mc'],
     2: ['tl', 'br'],
     3: ['tl', 'mc', 'br'],
-    4: ['tl', 'tr', 'bl', 'br'],
-    5: ['tl', 'tr', 'mc', 'bl', 'br'],
-    6: ['tl', 'tr', 'ml', 'mr', 'bl', 'br']
+    4: ['tl', 'tr', 'bl', 'br']
   };
   var PIP_CLASSES = ['tl', 'tc', 'tr', 'ml', 'mc', 'mr', 'bl', 'bc', 'br'];
 
@@ -1234,13 +1276,13 @@
     var ticks = 0;
     var maxTicks = 9;
     var tickInterval = setInterval(function () {
-      setDieFace(1 + Math.floor(Math.random() * 6));
-      setDoubtDieFace(1 + Math.floor(Math.random() * 6));
+      setDieFace(1 + Math.floor(Math.random() * 4));
+      setDoubtDieFace(1 + Math.floor(Math.random() * 4));
       ticks++;
       if (ticks >= maxTicks) {
         clearInterval(tickInterval);
-        var result = 1 + Math.floor(Math.random() * 6);
-        var doubtResult = 1 + Math.floor(Math.random() * 6);
+        var result = 1 + Math.floor(Math.random() * 4);
+        var doubtResult = 1 + Math.floor(Math.random() * 4);
         setDieFace(result);
         setDoubtDieFace(doubtResult);
         die.classList.remove('rolling');
@@ -1588,8 +1630,10 @@
         window.setTimeout(function () {
           showRevealCard(outcome, key, function () {
             var afterEffect = function () {
-              resolveDoubtTurn(outcome, doubtRoll, function () {
-                finishTurnUI();
+              maybeBonusRoomie(outcome, key, function () {
+                resolveDoubtTurn(outcome, doubtRoll, function () {
+                  finishTurnUI();
+                });
               });
             };
             if (outcome.finalSquare !== rolledSquare) {
@@ -1635,8 +1679,10 @@
       window.setTimeout(function () {
         showRevealCard(outcome, key, function () {
           var afterEffect = function () {
-            resolveDoubtTurn(outcome, doubtRoll, function () {
-              finishTurnUI();
+            maybeBonusRoomie(outcome, key, function () {
+              resolveDoubtTurn(outcome, doubtRoll, function () {
+                finishTurnUI();
+              });
             });
           };
           if (outcome.finalSquare !== landedSquare) {
