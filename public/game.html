@@ -326,30 +326,35 @@
     margin-bottom:clamp(3px, 0.8vw, 7px);
   }
   .roomie-wall-title span{font-weight:600; color:var(--ink-soft); text-transform:none; letter-spacing:0;}
-  .roomie-slots{
-    flex:1;
-    display:grid;
-    grid-template-columns:repeat(4, 1fr);
-    gap:clamp(3px, 0.8vw, 8px);
+  /* Shelf art is 1302x1208 — the container locks to that same aspect
+     ratio (rather than stretching to fill) so the percentage-based slot
+     positions below line up exactly with the silhouettes baked into the
+     image, with no letterboxing to account for. */
+  .roomie-shelf{
+    position:relative;
+    height:100%;
+    aspect-ratio:1302/1208;
+    margin:0 auto;
     min-height:0;
   }
-  .roomie-col{display:flex; flex-direction:column; align-items:center; gap:3px; min-height:0;}
-  .roomie-col-label{
-    font-family:'Baloo 2', sans-serif; font-weight:700;
-    font-size:clamp(5.5px, 1.1vw, 8.5px); color:var(--ink-soft);
-    text-transform:uppercase; letter-spacing:0.02em;
-    white-space:nowrap;
+  .roomie-shelf-bg{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    display:block;
+    pointer-events:none;
   }
-  .roomie-col-slots{
-    display:flex; gap:2px;
-    width:100%; flex:1; min-height:0;
+  .roomie-slot-img{
+    position:absolute;
+    width:16%;
+    transform:translate(-50%, -50%) scale(0.5);
+    opacity:0;
+    pointer-events:none;
+    filter:drop-shadow(0 2px 3px rgba(42,32,51,0.35));
+    transition:opacity 0.35s ease, transform 0.4s cubic-bezier(.34,1.56,.64,1);
   }
-  .roomie-slot{
-    flex:1;
-    aspect-ratio:1;
-    background:#fff;
-    border:1.5px dashed var(--line);
-    border-radius:4px;
+  .roomie-slot-img.collected{
+    opacity:1;
+    transform:translate(-50%, -50%) scale(1);
   }
 
   /* REVEAL CARD — pops up large and centered on the board, positioned
@@ -420,6 +425,117 @@
   .reveal-tag.type-collectible{background:var(--gold-deep);}
   .reveal-tag.type-story{background:var(--pink-deep);}
   .reveal-tag.type-finish{background:linear-gradient(135deg, var(--gold), var(--gold-deep));}
+
+  /* THE DOUBT — dramatic dark overlay, used for the one-time intro and
+     for getting caught. Deliberately "drained of color" against the
+     rest of the page's warm palette, per the design doc. Higher
+     z-index than the reveal overlay so it always wins if both would
+     ever be relevant at once. */
+  .doubt-overlay{
+    position:absolute; inset:0;
+    background:rgba(10,8,14,0.8);
+    border-radius:16px;
+    z-index:20;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.3s ease;
+  }
+  .doubt-overlay.open{opacity:1; pointer-events:auto;}
+  .doubt-card{
+    position:absolute; top:50%; left:50%;
+    transform:translate(-50%, -50%) scale(0.85);
+    width:min(88%, 460px);
+    max-height:90%;
+    overflow-y:auto;
+    background:linear-gradient(165deg, #2E2438, #16111E);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:22px;
+    padding:clamp(22px, 4vw, 34px) clamp(20px, 3.5vw, 30px);
+    text-align:center;
+    box-shadow:0 30px 70px rgba(0,0,0,0.55);
+    opacity:0;
+    transition:transform 0.35s cubic-bezier(.34,1.56,.64,1), opacity 0.3s ease;
+    z-index:21;
+  }
+  .doubt-overlay.open .doubt-card{transform:translate(-50%, -50%) scale(1); opacity:1;}
+  .doubt-card-portrait{
+    width:clamp(86px, 19vw, 128px);
+    margin:0 auto 14px;
+    filter:grayscale(1) drop-shadow(0 10px 18px rgba(0,0,0,0.5));
+  }
+  .doubt-card-name{
+    font-family:'Baloo 2', sans-serif; font-weight:800;
+    font-size:clamp(19px, 3.6vw, 25px);
+    letter-spacing:0.05em; text-transform:uppercase;
+    color:#fff;
+    margin-bottom:8px;
+  }
+  .doubt-card-line{
+    font-size:clamp(14.5px, 2.5vw, 17px);
+    font-style:italic;
+    color:#C9BFD4;
+    margin-bottom:16px;
+    line-height:1.5;
+  }
+  .doubt-card-rules{
+    list-style:none;
+    text-align:left;
+    margin-bottom:22px;
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .doubt-card-rules[hidden]{display:none;}
+  .doubt-card-rules li{
+    font-size:clamp(11.5px, 2vw, 13.5px);
+    color:#DCD5E4; line-height:1.45;
+    display:flex; align-items:flex-start; gap:9px;
+  }
+  .doubt-rule-dot{
+    width:8px; height:8px; border-radius:50%;
+    margin-top:5px; flex-shrink:0;
+    background:rgba(255,255,255,0.4);
+  }
+  .doubt-rule-dot.dot-setback{background:var(--setback);}
+  .doubt-rule-dot.dot-connection{background:var(--blue);}
+  .doubt-card-action{
+    background:#fff; color:#17121D; border:0;
+    padding:12px 30px; border-radius:10px;
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:15px;
+    cursor:pointer; transition:background 0.2s ease;
+  }
+  .doubt-card-action:hover{background:#E8E2EF;}
+  .doubt-card-action[hidden]{display:none;}
+  .doubt-card-hint{font-size:12px; color:#9C90A8; margin-top:4px;}
+  .doubt-card-hint[hidden]{display:none;}
+
+  /* THE DOUBT'S VOICE — small, quick, auto-dismissing quote bubble
+     near his die, shown every turn except a catch turn (the doubt-
+     overlay "caught" moment takes over instead that turn). */
+  .doubt-voice{
+    position:absolute;
+    left:78%; top:28%;
+    transform:translate(-50%, -50%) scale(0.9);
+    width:min(76%, 210px);
+    background:#17121D;
+    color:#EDE7F2;
+    border-radius:12px;
+    padding:10px 14px;
+    font-size:clamp(10.5px, 2vw, 12.5px);
+    font-style:italic;
+    text-align:center;
+    line-height:1.4;
+    box-shadow:0 10px 24px rgba(0,0,0,0.4);
+    z-index:9;
+    opacity:0;
+    transition:opacity 0.25s ease, transform 0.25s ease;
+  }
+  .doubt-voice[hidden]{display:none;}
+  .doubt-voice.open{opacity:1; transform:translate(-50%, -50%) scale(1);}
+  .doubt-voice::after{
+    content:'';
+    position:absolute; left:50%; bottom:-6px; transform:translateX(-50%);
+    border-left:6px solid transparent; border-right:6px solid transparent;
+    border-top:6px solid #17121D;
+  }
 </style>
 </head>
 <body>
@@ -529,12 +645,16 @@
         ROOMIE WALL: visual home for the Roomie collection system.
         Covers the mug-and-keys illustration baked into the board image
         once the first roll happens; the logo/tagline above are higher
-        up in the image and untouched. Slots stay empty placeholders
-        until Roomie collection itself is built.
+        up in the image and untouched. The shelf art (shelf-empty.png)
+        already has all 16 item silhouettes baked in as empty slots, in
+        the same 1-16 order as ROOMIE_POOL (row-major, 4x4) — collected
+        Roomies are laid over their matching silhouette by JS.
       -->
       <div class="roomie-wall" id="roomie-wall" hidden>
         <div class="roomie-wall-title">Roomie Wall <span>— collect them all</span></div>
-        <div class="roomie-slots" id="roomie-slots"></div>
+        <div class="roomie-shelf" id="roomie-shelf">
+          <img class="roomie-shelf-bg" src="assets/game/roomies/shelf-empty.png" alt="Roomie shelf">
+        </div>
       </div>
 
       <div class="reveal-overlay" id="reveal-overlay">
@@ -546,6 +666,38 @@
           <button type="button" class="reveal-action" id="reveal-action" hidden></button>
           <p class="reveal-hint" id="reveal-hint" hidden>Continuing…</p>
         </div>
+      </div>
+
+      <!--
+        THE DOUBT — a dramatic, dark, "drained of color" overlay (vs. the
+        site's warm palette), used for exactly two moments: the one-time
+        introduction (first time it ever moves) and getting caught. Both
+        share this component; content/behavior toggled in JS.
+      -->
+      <div class="doubt-overlay" id="doubt-overlay">
+        <div class="doubt-card" id="doubt-card">
+          <img class="doubt-card-portrait" src="assets/game/A-Doubt-playing-piece.png" alt="The Doubt">
+          <div class="doubt-card-name">The Doubt</div>
+          <p class="doubt-card-line" id="doubt-card-line"></p>
+          <ul class="doubt-card-rules" id="doubt-card-rules" hidden>
+            <li><span class="doubt-rule-dot"></span>He moves every time you do</li>
+            <li><span class="doubt-rule-dot dot-setback"></span>He speeds up if you hit a Setback</li>
+            <li><span class="doubt-rule-dot dot-connection"></span>He slows down if you make a real Connection (email, share, etc.)</li>
+            <li><span class="doubt-rule-dot"></span>Catches you? Back to Square 1 — any Roomies you've collected stay safe</li>
+          </ul>
+          <button type="button" class="doubt-card-action" id="doubt-card-action" hidden>Continue</button>
+          <p class="doubt-card-hint" id="doubt-card-hint" hidden>Continuing…</p>
+        </div>
+      </div>
+
+      <!--
+        THE DOUBT'S VOICE — small, quick, auto-dismissing, appears near
+        his die each turn (alongside the player's own reveal card, not
+        replacing it) except on a catch turn, where the doubt-overlay
+        "caught" moment takes over instead.
+      -->
+      <div class="doubt-voice" id="doubt-voice" hidden>
+        <span id="doubt-voice-text"></span>
       </div>
     </div>
 
@@ -626,17 +778,64 @@
     return typeof sq.text === 'object' ? sq.text[characterKey] : sq.text;
   }
 
+  // ---------- Roomies: one shared 16-slot collection per PLAYER
+  // (localStorage-level), not per character — collecting Roomie #4 as
+  // Fran keeps it collected after switching to play as Jeremy. The pool
+  // and its order below matches the shelf art's own baked-in silhouette
+  // layout (assets/game/roomies/shelf-empty.png), row-major 4x4. ----------
+  var ROOMIE_POOL = [
+    { id: 1, name: "Martha's Pencelet", img: 'roomie-01.png' },
+    { id: 2, name: "Martha's Diva Dome", img: 'roomie-02.png' },
+    { id: 3, name: "Martha's Clipboard", img: 'roomie-03.png' },
+    { id: 4, name: 'Fran Frooney', img: 'roomie-04.png' },
+    { id: 5, name: 'Fran Bubblegum Beats', img: 'roomie-05.png' },
+    { id: 6, name: 'Fran Bangle Wrangle', img: 'roomie-06.png' },
+    { id: 7, name: "Jeremy's Bag", img: 'roomie-07.png' },
+    { id: 8, name: "Jeremy's Cheese Board", img: 'roomie-08.png' },
+    { id: 9, name: "Jeremy's Job Launcher", img: 'roomie-09.png' },
+    { id: 10, name: "Will's Headphones", img: 'roomie-10.png' },
+    { id: 11, name: "Will's Root Beer Mug", img: 'roomie-11.png' },
+    { id: 12, name: "Will's Brush", img: 'roomie-12.png' },
+    { id: 13, name: 'Toasty the Smoke Detector', img: 'roomie-13.png' },
+    { id: 14, name: 'Lost Sock', img: 'roomie-14.png' },
+    { id: 15, name: 'Cut-It-Out Scissors', img: 'roomie-15.png' },
+    { id: 16, name: 'First Place Ribbon', img: 'roomie-16.png' }
+  ];
+  var ROOMIE_GATE_MIN = 2;
+  var ROOMIE_GATE_SQUARE = 23;
+  var ROOMIE_GATE_BOUNCE_TO = 15; // most recent collectible square before the gate
+
+  function getCollectedRoomies() {
+    try {
+      var arr = JSON.parse(localStorage.getItem('collectedRoomies') || '[]');
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) {
+      return [];
+    }
+  }
+  function addCollectedRoomie(id) {
+    var collected = getCollectedRoomies();
+    if (collected.indexOf(id) === -1) {
+      collected.push(id);
+      localStorage.setItem('collectedRoomies', JSON.stringify(collected));
+    }
+  }
+  // Picks one random not-yet-collected Roomie from the full 16-item pool
+  // (regardless of which character is currently being played) and marks
+  // it collected. Returns null once all 16 are already owned, so callers
+  // can fall back to a graceful "shelf's full" moment instead of erroring.
+  function awardRandomRoomie() {
+    var collected = getCollectedRoomies();
+    var available = ROOMIE_POOL.filter(function (r) { return collected.indexOf(r.id) === -1; });
+    if (!available.length) return null;
+    var pick = available[Math.floor(Math.random() * available.length)];
+    addCollectedRoomie(pick.id);
+    return pick;
+  }
+
   // "Only the square you land on via your move/spin triggers its effect.
   // If that effect moves your token again... the destination square's
   // own effect does NOT re-trigger" — first-place-board-game-design.md.
-  //
-  // Deliberately NOT yet implemented (both require systems that don't
-  // exist yet and are still explicitly deferred to follow-up prompts):
-  // - Collectible squares ("Find a Roomie!") don't award anything —
-  //   there's no Roomie inventory yet.
-  // - The Roomie Gate (Square 23) doesn't check/enforce the "need 2
-  //   Roomies to pass" rule — enforcing it now, with no way to ever
-  //   collect one, would permanently soft-lock the board.
   function resolveLanding(square, characterKey) {
     var sq = BOARD_BY_N[square];
     var text = sq ? (squareText(sq, characterKey) || '') : '';
@@ -646,13 +845,35 @@
     var finalSquare = square;
     if (advanceMatch) finalSquare = Math.min(44, square + parseInt(advanceMatch[1], 10));
     else if (backMatch) finalSquare = Math.max(1, square - parseInt(backMatch[1], 10));
+
+    var landedRoomie = null;
+    if (sq && sq.type === 'collectible') {
+      var awarded = awardRandomRoomie();
+      if (awarded) {
+        landedRoomie = awarded;
+        text = 'Found it! You picked up ' + awarded.name + '.';
+      } else {
+        text = "The shelf's already full — all 16 Roomies are yours! Bonus hop forward.";
+        finalSquare = Math.min(44, square + 1);
+      }
+    } else if (square === ROOMIE_GATE_SQUARE) {
+      var have = getCollectedRoomies().length;
+      if (have >= ROOMIE_GATE_MIN) {
+        text = "You've got " + have + ' Roomies with you — the gate opens.';
+      } else {
+        text = 'Only ' + have + ' of the ' + ROOMIE_GATE_MIN + ' Roomies you need. Head back and keep looking.';
+        finalSquare = ROOMIE_GATE_BOUNCE_TO;
+      }
+    }
+
     return {
       landedSquare: square,
       landedType: sq ? sq.type : null,
       landedLabel: sq ? sq.label : null,
       finalSquare: finalSquare,
       loseTurn: loseTurn,
-      landedText: text
+      landedText: text,
+      landedRoomie: landedRoomie
     };
   }
 
@@ -777,6 +998,8 @@
     localStorage.removeItem('gameLoseTurn');
     localStorage.removeItem('doubtSquare');
     localStorage.removeItem('pendingDoubtRoll');
+    localStorage.removeItem('doubtIntroSeen');
+    localStorage.removeItem('doubtLineIndex');
   }
 
   // ---------- Screen 1: character select ----------
@@ -1063,7 +1286,15 @@
     var hint = document.getElementById('reveal-hint');
     var overlay = document.getElementById('reveal-overlay');
 
-    icon.innerHTML = '<img src="' + iconSrcForSquare(outcome.landedSquare) + '" alt="">';
+    // A Roomie find shows its own item art instead of the generic
+    // square-tile icon; refresh the wall now too, so the shelf visually
+    // fills in right as the card announcing it appears.
+    if (outcome.landedRoomie) {
+      icon.innerHTML = '<img src="assets/game/roomies/' + outcome.landedRoomie.img + '" alt="' + outcome.landedRoomie.name + '">';
+      updateRoomieWallSlots();
+    } else {
+      icon.innerHTML = '<img src="' + iconSrcForSquare(outcome.landedSquare) + '" alt="">';
+    }
     tag.className = 'reveal-tag type-' + type;
     tag.textContent = TYPE_LABEL[type] || '';
     title.textContent = outcome.landedLabel || ('Square ' + outcome.landedSquare);
@@ -1095,42 +1326,119 @@
     overlay.classList.add('open');
   }
 
+  // ---------- The Doubt's voice — small, auto-dismissing, shown every
+  // non-catch turn alongside (right after) the player's own reveal
+  // card, never blocking it or requiring a tap. Rotates through the
+  // three design-doc lines in order. ----------
+  var DOUBT_LINES = [
+    "You'll never finish this.",
+    "Nobody's really watching.",
+    "You can't do this alone."
+  ];
+
+  function nextDoubtLine() {
+    var idx = parseInt(localStorage.getItem('doubtLineIndex') || '0', 10);
+    var line = DOUBT_LINES[idx % DOUBT_LINES.length];
+    localStorage.setItem('doubtLineIndex', String((idx + 1) % DOUBT_LINES.length));
+    return line;
+  }
+
+  function showDoubtVoice(line) {
+    var voice = document.getElementById('doubt-voice');
+    document.getElementById('doubt-voice-text').textContent = '“' + line + '”';
+    voice.hidden = false;
+    void voice.offsetWidth; // restart the pop-in if it's showing again quickly
+    voice.classList.add('open');
+    window.setTimeout(function () {
+      voice.classList.remove('open');
+      window.setTimeout(function () { voice.hidden = true; }, 260);
+    }, 1700);
+  }
+
+  // ---------- The Doubt's dramatic dark card — two modes: the one-time
+  // 'intro' (first time it ever moves, tap-required, explains the
+  // rules) and 'caught' (auto-dismisses, but takes priority over the
+  // small voice line that turn — a catch is never a quiet background
+  // event). ----------
+  function showDoubtCard(mode, onDone) {
+    var overlay = document.getElementById('doubt-overlay');
+    var line = document.getElementById('doubt-card-line');
+    var rules = document.getElementById('doubt-card-rules');
+    var action = document.getElementById('doubt-card-action');
+    var hint = document.getElementById('doubt-card-hint');
+
+    function close() {
+      overlay.classList.remove('open');
+      window.setTimeout(onDone, 300);
+    }
+
+    if (mode === 'intro') {
+      line.textContent = "Something's already behind you.";
+      rules.hidden = false;
+      action.hidden = false;
+      hint.hidden = true;
+      action.onclick = close;
+    } else {
+      line.textContent = 'Caught you. Back to Square 1 — any Roomies you’ve collected stay safe.';
+      rules.hidden = true;
+      action.hidden = true;
+      hint.hidden = false;
+      window.setTimeout(close, 2300);
+    }
+
+    overlay.classList.add('open');
+  }
+
   // ---------- The Doubt: rolls paired with the player (see the shared
   // click handler above), then moves once the player's landing type is
   // known — baseline creep + the new die roll + setback/connection
   // modifiers, all additive per the follow-up clarification. Checks the
-  // catch condition against the player's own final square. ----------
+  // catch condition against the player's own final square. The very
+  // first time this ever runs, the intro card explains the rules
+  // before the token moves at all. ----------
   function resolveDoubtTurn(playerOutcome, doubtRoll, onDone) {
     var doubtFrom = getDoubtSquare();
     var modifier = playerOutcome.landedType === 'setback' ? 1
       : (playerOutcome.landedType === 'connection' ? -2 : 0);
     var doubtMove = 1 + doubtRoll + modifier; // 1 = existing baseline creep
     var doubtTo = Math.max(1, Math.min(44, doubtFrom + doubtMove));
+    var caught = doubtTo >= playerOutcome.finalSquare;
+    var isFirstDoubtMove = localStorage.getItem('doubtIntroSeen') !== 'true';
 
-    window.setTimeout(function () {
-      placeDoubtToken(doubtTo);
-      setDoubtSquare(doubtTo);
+    function doMove() {
+      window.setTimeout(function () {
+        placeDoubtToken(doubtTo);
+        setDoubtSquare(doubtTo);
 
-      if (doubtTo >= playerOutcome.finalSquare) {
-        // Caught: player resets to Square 1, Roomies kept (n/a — not
-        // built yet), Doubt resets to its starting distance behind.
         window.setTimeout(function () {
-          localStorage.setItem('gameSquare', '1');
-          setDoubtSquare(1);
-          placeToken(1);
-          placeDoubtToken(1);
-          var resultEl = document.getElementById('roll-result');
-          resultEl.textContent = 'The Doubt caught you — back to Square 1. (Any Roomies collected are kept.)';
-          resultEl.hidden = false;
-          window.setTimeout(onDone, 1200);
-        }, 500);
-      } else {
-        if (!localStorage.getItem('gameSquare') || parseInt(localStorage.getItem('gameSquare'), 10) !== playerOutcome.finalSquare) {
-          localStorage.setItem('gameSquare', String(playerOutcome.finalSquare));
-        }
-        onDone();
-      }
-    }, 300);
+          if (caught) {
+            // Caught: player resets to Square 1, Roomies kept (n/a —
+            // not built yet), Doubt resets to its starting distance
+            // behind. This is its own clear moment, not a quiet
+            // background reset — and it replaces the voice line this
+            // turn rather than showing both.
+            localStorage.setItem('gameSquare', '1');
+            setDoubtSquare(1);
+            placeToken(1);
+            placeDoubtToken(1);
+            showDoubtCard('caught', onDone);
+          } else {
+            if (!localStorage.getItem('gameSquare') || parseInt(localStorage.getItem('gameSquare'), 10) !== playerOutcome.finalSquare) {
+              localStorage.setItem('gameSquare', String(playerOutcome.finalSquare));
+            }
+            showDoubtVoice(nextDoubtLine());
+            onDone();
+          }
+        }, 400);
+      }, 300);
+    }
+
+    if (isFirstDoubtMove) {
+      localStorage.setItem('doubtIntroSeen', 'true');
+      showDoubtCard('intro', doMove);
+    } else {
+      doMove();
+    }
   }
 
   function finishTurnUI() {
@@ -1244,38 +1552,57 @@
     }, 150);
   }
 
-  // ---------- Roomie Wall — visual home for the (not-yet-built) Roomie
-  // collection system. Appears once the first roll happens, replacing
-  // the mug-and-keys art baked into the board image at that spot. 16
-  // empty slots, 4 per character; the logo/tagline above are untouched
-  // since they're higher up in the image, outside this overlay's area. ----------
+  // ---------- Roomie Wall — visual home for the Roomie collection
+  // system. Appears once the first roll happens, replacing the mug-
+  // and-keys art baked into the board image at that spot. The shelf art
+  // already has all 16 item silhouettes drawn in as empty placeholders;
+  // this just lays each collected Roomie's own image over its matching
+  // slot (row-major 4x4, same order as ROOMIE_POOL — see the grid this
+  // was measured against). ----------
+  var ROOMIE_GRID = { left: 2.8, right: 97.2, top: 18.5, bottom: 97.5 };
+
+  function roomieSlotPercent(id) {
+    var idx = id - 1;
+    var col = idx % 4, row = Math.floor(idx / 4);
+    var colW = (ROOMIE_GRID.right - ROOMIE_GRID.left) / 4;
+    var rowH = (ROOMIE_GRID.bottom - ROOMIE_GRID.top) / 4;
+    return {
+      left: ROOMIE_GRID.left + colW * (col + 0.5),
+      top: ROOMIE_GRID.top + rowH * (row + 0.5)
+    };
+  }
+
   function showRoomieWall() {
     buildRoomieWallOnce();
+    updateRoomieWallSlots();
     document.getElementById('roomie-wall').hidden = false;
   }
 
   function buildRoomieWallOnce() {
-    var container = document.getElementById('roomie-slots');
-    if (container.children.length) return;
-    ['fran', 'jeremy', 'will', 'martha'].forEach(function (charKey) {
-      var col = document.createElement('div');
-      col.className = 'roomie-col';
+    var shelf = document.getElementById('roomie-shelf');
+    if (shelf.dataset.built === '1') return;
+    ROOMIE_POOL.forEach(function (r) {
+      var p = roomieSlotPercent(r.id);
+      var img = document.createElement('img');
+      img.className = 'roomie-slot-img';
+      img.dataset.roomieId = String(r.id);
+      img.src = 'assets/game/roomies/' + r.img;
+      img.alt = r.name;
+      img.style.left = p.left + '%';
+      img.style.top = p.top + '%';
+      shelf.appendChild(img);
+    });
+    shelf.dataset.built = '1';
+  }
 
-      var label = document.createElement('div');
-      label.className = 'roomie-col-label';
-      label.textContent = CHARACTERS[charKey].name;
-      col.appendChild(label);
-
-      var slots = document.createElement('div');
-      slots.className = 'roomie-col-slots';
-      for (var i = 0; i < 4; i++) {
-        var slot = document.createElement('div');
-        slot.className = 'roomie-slot';
-        slots.appendChild(slot);
-      }
-      col.appendChild(slots);
-
-      container.appendChild(col);
+  // Called both when the wall is (re)shown (so a returning/switched-
+  // character player sees their already-collected Roomies right away)
+  // and the instant a new one is found, so the shelf fills in live.
+  function updateRoomieWallSlots() {
+    var collected = getCollectedRoomies();
+    document.querySelectorAll('.roomie-slot-img').forEach(function (img) {
+      var id = parseInt(img.dataset.roomieId, 10);
+      img.classList.toggle('collected', collected.indexOf(id) !== -1);
     });
   }
 
