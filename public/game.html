@@ -166,6 +166,11 @@
     filter:drop-shadow(0 3px 6px rgba(0,0,0,0.35));
     transition:left 0.6s cubic-bezier(.4,0,.2,1), bottom 0.6s cubic-bezier(.4,0,.2,1);
   }
+  /* The global img{display:block} reset above otherwise wins over the
+     browser's default [hidden]{display:none} (author styles always beat
+     UA styles, regardless of specificity) — without this, toggling
+     .hidden on an <img> like #doubt-token does nothing visible. */
+  .board-token[hidden]{display:none;}
   .board-token.drop-in{animation:token-drop 0.5s cubic-bezier(.34,1.56,.64,1);}
   @keyframes token-drop{
     0%{transform:translateX(-50%) translateY(-14px) scale(0.6); opacity:0;}
@@ -247,6 +252,23 @@
   .pip.tl{grid-area:tl;} .pip.tc{grid-area:tc;} .pip.tr{grid-area:tr;}
   .pip.ml{grid-area:ml;} .pip.mc{grid-area:mc;} .pip.mr{grid-area:mr;}
   .pip.bl{grid-area:bl;} .pip.bc{grid-area:bc;} .pip.br{grid-area:br;}
+
+  /* THE DOUBT'S DIE — same shapes as the player's, themed dark: a black
+     die with white pips, no base glow/highlight (drained of color, per
+     the design doc's visual identity for The Doubt), and not clickable
+     (it rolls automatically alongside the player's roll). */
+  .doubt-base{background:#2A2033;}
+  .doubt-dome{
+    cursor:default;
+    background:
+      radial-gradient(circle at 32% 24%, rgba(255,255,255,0.35), rgba(120,110,130,0.1) 45%, rgba(60,55,65,0.12) 75%),
+      rgba(80,74,90,0.18);
+    border-color:rgba(140,132,150,0.5);
+  }
+  .doubt-die{background:#241B2E;}
+  .doubt-die .pip{background:#fff;}
+  .doubt-token{filter:grayscale(1) drop-shadow(0 3px 6px rgba(0,0,0,0.45));}
+
   .click-callout{
     position:absolute;
     left:50%; top:-38%; transform:translateX(-50%);
@@ -280,6 +302,124 @@
     text-align:center; margin-top:10px;
     font-size:13px; font-weight:600; color:var(--gold-deep);
   }
+
+  /* ROOMIE WALL — replaces the mug+keys art (baked into the board
+     image) once the first roll happens. Sits in the lower portion of
+     the board's open center, below the logo/tagline. */
+  .roomie-wall{
+    position:absolute;
+    left:11%; right:11%; bottom:8.5%;
+    height:23%;
+    background:var(--paper-2);
+    border:2px solid var(--line);
+    border-radius:12px;
+    padding:clamp(5px, 1vw, 10px) clamp(8px, 1.4vw, 16px);
+    display:flex; flex-direction:column;
+    z-index:3;
+  }
+  .roomie-wall[hidden]{display:none;}
+  .roomie-wall-title{
+    text-align:center;
+    font-family:'Baloo 2', sans-serif; font-weight:800;
+    font-size:clamp(8px, 1.6vw, 13px); letter-spacing:0.02em;
+    color:var(--plum); text-transform:uppercase;
+    margin-bottom:clamp(3px, 0.8vw, 7px);
+  }
+  .roomie-wall-title span{font-weight:600; color:var(--ink-soft); text-transform:none; letter-spacing:0;}
+  .roomie-slots{
+    flex:1;
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:clamp(3px, 0.8vw, 8px);
+    min-height:0;
+  }
+  .roomie-col{display:flex; flex-direction:column; align-items:center; gap:3px; min-height:0;}
+  .roomie-col-label{
+    font-family:'Baloo 2', sans-serif; font-weight:700;
+    font-size:clamp(5.5px, 1.1vw, 8.5px); color:var(--ink-soft);
+    text-transform:uppercase; letter-spacing:0.02em;
+    white-space:nowrap;
+  }
+  .roomie-col-slots{
+    display:flex; gap:2px;
+    width:100%; flex:1; min-height:0;
+  }
+  .roomie-slot{
+    flex:1;
+    aspect-ratio:1;
+    background:#fff;
+    border:1.5px dashed var(--line);
+    border-radius:4px;
+  }
+
+  /* REVEAL CARD — pops up large and centered on the board, positioned
+     near wherever the token currently is (not a bottom sheet). */
+  .reveal-overlay{
+    position:absolute; inset:0;
+    background:rgba(42,32,51,0.32);
+    border-radius:16px;
+    z-index:10;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.25s ease;
+  }
+  .reveal-overlay.open{opacity:1; pointer-events:auto;}
+  .reveal-card{
+    position:absolute;
+    width:62%;
+    max-width:420px;
+    background:#fff;
+    border-radius:20px;
+    box-shadow:0 20px 50px rgba(42,32,51,0.4);
+    padding:clamp(18px, 3.5vw, 30px) clamp(16px, 3vw, 26px);
+    text-align:center;
+    transform:translate(-50%, -50%) scale(0.85);
+    opacity:0;
+    transition:transform 0.3s cubic-bezier(.34,1.56,.64,1), opacity 0.25s ease;
+    z-index:11;
+  }
+  .reveal-overlay.open .reveal-card{transform:translate(-50%, -50%) scale(1); opacity:1;}
+  .reveal-icon{
+    width:clamp(52px, 9vw, 72px); height:clamp(52px, 9vw, 72px);
+    margin:0 auto 14px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    color:#fff;
+  }
+  .reveal-icon svg{width:56%; height:56%;}
+  .reveal-tag{
+    display:inline-block;
+    font-family:'Baloo 2', sans-serif; font-weight:700;
+    font-size:11px; letter-spacing:0.04em; text-transform:uppercase;
+    padding:4px 12px; border-radius:999px;
+    margin-bottom:10px;
+    color:#fff;
+  }
+  .reveal-title{
+    font-family:'Baloo 2', sans-serif; font-weight:800;
+    font-size:clamp(17px, 3vw, 22px); color:var(--plum);
+    margin-bottom:10px;
+  }
+  .reveal-text{
+    font-size:clamp(14px, 2.4vw, 16.5px); line-height:1.55;
+    color:var(--ink); margin-bottom:18px;
+  }
+  .reveal-action{
+    background:var(--gold); color:var(--plum); border:0;
+    padding:12px 28px; border-radius:10px;
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:15px;
+    cursor:pointer; transition:background 0.2s ease;
+  }
+  .reveal-action:hover{background:#FFC15A;}
+  .reveal-action[hidden]{display:none;}
+  .reveal-hint{font-size:12px; color:var(--ink-soft); margin-top:10px;}
+  .reveal-icon.type-corner, .reveal-tag.type-corner{background:var(--plum-deep);}
+  .reveal-icon.type-milestone, .reveal-tag.type-milestone{background:var(--teal);}
+  .reveal-icon.type-setback, .reveal-tag.type-setback{background:var(--setback);}
+  .reveal-icon.type-connection, .reveal-tag.type-connection{background:var(--blue);}
+  .reveal-icon.type-collectible, .reveal-tag.type-collectible{background:var(--gold-deep);}
+  .reveal-icon.type-story, .reveal-tag.type-story{background:var(--pink-deep);}
+  .reveal-icon.type-finish, .reveal-tag.type-finish{background:linear-gradient(135deg, var(--gold), var(--gold-deep));}
 </style>
 </head>
 <body>
@@ -367,6 +507,46 @@
           </div>
         </button>
       </div>
+
+      <!--
+        THE DOUBT'S POPPER: rolls automatically, paired with the
+        player's roll — not clickable. Placeholder shapes, same as the
+        player's popper, themed dark (black die, white pips).
+      -->
+      <div class="dice-popper doubt-popper" id="doubt-popper" hidden>
+        <div class="dice-base doubt-base"></div>
+        <div class="dice-dome doubt-dome" id="doubt-dome" aria-hidden="true">
+          <div class="die doubt-die" id="doubt-die">
+            <span class="pip tl"></span><span class="pip tc"></span><span class="pip tr"></span>
+            <span class="pip ml"></span><span class="pip mc"></span><span class="pip mr"></span>
+            <span class="pip bl"></span><span class="pip bc"></span><span class="pip br"></span>
+          </div>
+        </div>
+      </div>
+      <img class="board-token doubt-token" id="doubt-token" src="assets/game/A-Doubt-playing-piece.png" alt="The Doubt" hidden>
+
+      <!--
+        ROOMIE WALL: visual home for the Roomie collection system.
+        Covers the mug-and-keys illustration baked into the board image
+        once the first roll happens; the logo/tagline above are higher
+        up in the image and untouched. Slots stay empty placeholders
+        until Roomie collection itself is built.
+      -->
+      <div class="roomie-wall" id="roomie-wall" hidden>
+        <div class="roomie-wall-title">Roomie Wall <span>— collect them all</span></div>
+        <div class="roomie-slots" id="roomie-slots"></div>
+      </div>
+
+      <div class="reveal-overlay" id="reveal-overlay">
+        <div class="reveal-card" id="reveal-card">
+          <div class="reveal-icon" id="reveal-icon"></div>
+          <span class="reveal-tag" id="reveal-tag"></span>
+          <div class="reveal-title" id="reveal-title"></div>
+          <p class="reveal-text" id="reveal-text"></p>
+          <button type="button" class="reveal-action" id="reveal-action" hidden></button>
+          <p class="reveal-hint" id="reveal-hint" hidden>Continuing…</p>
+        </div>
+      </div>
     </div>
 
     <p class="roll-result" id="roll-result" hidden></p>
@@ -394,50 +574,50 @@
   // per-character text; no numeric effect on them per the design doc
   // ("pure narrative momentum").
   var BOARD_SQUARES = [
-    { n: 1, label: 'START', text: 'Boxes everywhere, keys in hand. The journey begins.' },
-    { n: 2, text: 'Job interview — nailed it. Advance 2.' },
-    { n: 3, text: 'Lost your keys already. Lose a turn.' },
-    { n: 4, text: 'Email 3 friends about First Place. Advance 3.' },
-    { n: 5, text: 'Find a Roomie!' },
-    { n: 6, text: 'Roommate ate your leftovers. Move back 1.' },
-    { n: 7, text: 'Learned to do laundry without shrinking everything. Advance 2.' },
-    { n: 8, text: { fran: 'Studio time booked!', jeremy: "Got the dispatcher's number.", will: 'Email back from a Lucasfilm assistant.', martha: 'First venue says yes.' } },
-    { n: 9, text: 'Missed the bus. Move back 2.' },
-    { n: 10, text: 'Made a new friend at the coffee shop. Advance 2.' },
-    { n: 11, text: 'Share your board on social. Advance 3.' },
-    { n: 12, label: 'CHECKPOINT', text: "The apartment's starting to feel like home." },
-    { n: 13, text: 'Lost the scissors. Again. Lose a turn.' },
-    { n: 14, text: 'First paycheck. Advance 2.' },
-    { n: 15, text: 'Find a Roomie!' },
-    { n: 16, text: 'Invite someone to pick their character. Advance 3.' },
-    { n: 17, text: 'Wi-Fi went out mid-episode. Move back 1.' },
-    { n: 18, text: 'Fixed something broken all by yourself. Advance 2.' },
-    { n: 19, text: { fran: 'Found the right beat.', jeremy: 'Ride-along date confirmed.', will: "Invited into the writers' room chat.", martha: 'Second city added to the tour.' } },
-    { n: 20, text: 'Got a little lost walking home. Move back 2.' },
-    { n: 21, text: 'Aced your budget this month. Advance 2.' },
-    { n: 22, text: "Tag a friend who'd love this show. Advance 3." },
-    { n: 23, label: 'ROOMIE GATE', text: "Need at least 2 Roomies collected to pass. Don't have them? Head back and keep looking." },
-    { n: 24, text: "Learned to cook something that wasn't cereal. Advance 2." },
-    { n: 25, text: 'Spilled coffee on your only clean shirt. Move back 1.' },
-    { n: 26, text: 'Find a Roomie!' },
-    { n: 27, text: 'Leave a comment/review somewhere. Advance 3.' },
-    { n: 28, text: "Alarm didn't go off. Move back 2." },
-    { n: 29, text: 'Got a compliment from your boss. Advance 2.' },
-    { n: 30, text: { fran: 'Recorded the hook.', jeremy: 'Vest fitted, radio clipped on.', will: 'First pages sent for notes.', martha: 'Ticket sales open.' } },
-    { n: 31, text: 'Tripped in front of the cute neighbor. Lose a turn.' },
-    { n: 32, text: 'Walked to the store alone, no big deal. Advance 2.' },
-    { n: 33, text: 'Recommend the show to a coworker. Advance 3.' },
-    { n: 34, label: 'FINAL STRETCH', text: "The dream's almost in reach." },
-    { n: 35, text: 'Found your favorite coffee shop. Advance 2.' },
-    { n: 36, text: 'Forgot your umbrella. Move back 1.' },
-    { n: 37, text: 'Find a Roomie!' },
-    { n: 38, text: 'Text a friend "guess what I\'m doing." Advance 3.' },
-    { n: 39, text: 'Roommate drama, round 2. Move back 2.' },
-    { n: 40, text: 'Hit a personal goal you set for yourself. Advance 2.' },
-    { n: 41, text: { fran: 'The beat drops.', jeremy: 'Radio call comes in — go time.', will: 'The whiteboard fills up.', martha: 'The arena lights come up.' } },
-    { n: 42, text: 'One more thing goes wrong, because life. Lose a turn.' },
-    { n: 43, text: 'Share your board one more time. Advance 3.' },
-    { n: 44, label: 'FINISH', text: 'The Dream, Realized.' }
+    { n: 1, type: 'corner', label: 'START', text: 'Boxes everywhere, keys in hand. The journey begins.' },
+    { n: 2, type: 'milestone', text: 'Job interview — nailed it. Advance 2.' },
+    { n: 3, type: 'setback', text: 'Lost your keys already. Lose a turn.' },
+    { n: 4, type: 'connection', text: 'Email 3 friends about First Place. Advance 3.' },
+    { n: 5, type: 'collectible', text: 'Find a Roomie!' },
+    { n: 6, type: 'setback', text: 'Roommate ate your leftovers. Move back 1.' },
+    { n: 7, type: 'milestone', text: 'Learned to do laundry without shrinking everything. Advance 2.' },
+    { n: 8, type: 'story', text: { fran: 'Studio time booked!', jeremy: "Got the dispatcher's number.", will: 'Email back from a Lucasfilm assistant.', martha: 'First venue says yes.' } },
+    { n: 9, type: 'setback', text: 'Missed the bus. Move back 2.' },
+    { n: 10, type: 'milestone', text: 'Made a new friend at the coffee shop. Advance 2.' },
+    { n: 11, type: 'connection', text: 'Share your board on social. Advance 3.' },
+    { n: 12, type: 'corner', label: 'CHECKPOINT', text: "The apartment's starting to feel like home." },
+    { n: 13, type: 'setback', text: 'Lost the scissors. Again. Lose a turn.' },
+    { n: 14, type: 'milestone', text: 'First paycheck. Advance 2.' },
+    { n: 15, type: 'collectible', text: 'Find a Roomie!' },
+    { n: 16, type: 'connection', text: 'Invite someone to pick their character. Advance 3.' },
+    { n: 17, type: 'setback', text: 'Wi-Fi went out mid-episode. Move back 1.' },
+    { n: 18, type: 'milestone', text: 'Fixed something broken all by yourself. Advance 2.' },
+    { n: 19, type: 'story', text: { fran: 'Found the right beat.', jeremy: 'Ride-along date confirmed.', will: "Invited into the writers' room chat.", martha: 'Second city added to the tour.' } },
+    { n: 20, type: 'setback', text: 'Got a little lost walking home. Move back 2.' },
+    { n: 21, type: 'milestone', text: 'Aced your budget this month. Advance 2.' },
+    { n: 22, type: 'connection', text: "Tag a friend who'd love this show. Advance 3." },
+    { n: 23, type: 'corner', label: 'ROOMIE GATE', text: "Need at least 2 Roomies collected to pass. Don't have them? Head back and keep looking." },
+    { n: 24, type: 'milestone', text: "Learned to cook something that wasn't cereal. Advance 2." },
+    { n: 25, type: 'setback', text: 'Spilled coffee on your only clean shirt. Move back 1.' },
+    { n: 26, type: 'collectible', text: 'Find a Roomie!' },
+    { n: 27, type: 'connection', text: 'Leave a comment/review somewhere. Advance 3.' },
+    { n: 28, type: 'setback', text: "Alarm didn't go off. Move back 2." },
+    { n: 29, type: 'milestone', text: 'Got a compliment from your boss. Advance 2.' },
+    { n: 30, type: 'story', text: { fran: 'Recorded the hook.', jeremy: 'Vest fitted, radio clipped on.', will: 'First pages sent for notes.', martha: 'Ticket sales open.' } },
+    { n: 31, type: 'setback', text: 'Tripped in front of the cute neighbor. Lose a turn.' },
+    { n: 32, type: 'milestone', text: 'Walked to the store alone, no big deal. Advance 2.' },
+    { n: 33, type: 'connection', text: 'Recommend the show to a coworker. Advance 3.' },
+    { n: 34, type: 'corner', label: 'FINAL STRETCH', text: "The dream's almost in reach." },
+    { n: 35, type: 'milestone', text: 'Found your favorite coffee shop. Advance 2.' },
+    { n: 36, type: 'setback', text: 'Forgot your umbrella. Move back 1.' },
+    { n: 37, type: 'collectible', text: 'Find a Roomie!' },
+    { n: 38, type: 'connection', text: 'Text a friend "guess what I\'m doing." Advance 3.' },
+    { n: 39, type: 'setback', text: 'Roommate drama, round 2. Move back 2.' },
+    { n: 40, type: 'milestone', text: 'Hit a personal goal you set for yourself. Advance 2.' },
+    { n: 41, type: 'story', text: { fran: 'The beat drops.', jeremy: 'Radio call comes in — go time.', will: 'The whiteboard fills up.', martha: 'The arena lights come up.' } },
+    { n: 42, type: 'setback', text: 'One more thing goes wrong, because life. Lose a turn.' },
+    { n: 43, type: 'connection', text: 'Share your board one more time. Advance 3.' },
+    { n: 44, type: 'finish', label: 'FINISH', text: 'The Dream, Realized.' }
   ];
   var BOARD_BY_N = {};
   BOARD_SQUARES.forEach(function (sq) { BOARD_BY_N[sq.n] = sq; });
@@ -466,8 +646,38 @@
     var finalSquare = square;
     if (advanceMatch) finalSquare = Math.min(44, square + parseInt(advanceMatch[1], 10));
     else if (backMatch) finalSquare = Math.max(1, square - parseInt(backMatch[1], 10));
-    return { landedSquare: square, finalSquare: finalSquare, loseTurn: loseTurn, landedText: text };
+    return {
+      landedSquare: square,
+      landedType: sq ? sq.type : null,
+      landedLabel: sq ? sq.label : null,
+      finalSquare: finalSquare,
+      loseTurn: loseTurn,
+      landedText: text
+    };
   }
+
+  var TYPE_LABEL = {
+    corner: 'Corner',
+    milestone: 'Milestone',
+    setback: 'Setback',
+    connection: 'Connection',
+    collectible: 'Collectible',
+    story: 'Story Beat',
+    finish: 'Finish'
+  };
+
+  // Larger versions of the same icon language used elsewhere on this
+  // page (e.g. the type-swatch idea from the board's very first pass),
+  // sized up for the reveal card's prominent top icon.
+  var TYPE_ICON = {
+    corner: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v18"/><path d="M5 4h13l-2 4 2 4H5"/></svg>',
+    milestone: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.6 6.8L12 16.9 5.8 20.4l1.6-6.8L2.2 9l6.9-.7z"/></svg>',
+    setback: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18L18 6M6 6l12 12"/></svg>',
+    connection: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="12" r="2.3"/><circle cx="17" cy="6" r="2.3"/><circle cx="17" cy="18" r="2.3"/><path d="M9 11l6-4M9 13l6 4"/></svg>',
+    collectible: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="1"/><path d="M4 13h16M12 9v11M8 9c0-2 1.5-4 4-4s4 2 4 4"/></svg>',
+    story: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 9 9 0 0 1-4-.9L3 20l1.1-4a8.4 8.4 0 0 1-1.1-4.5 8.4 8.4 0 0 1 8.9-8.4 8.6 8.6 0 0 1 9.1 8.4z"/></svg>',
+    finish: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v18"/><path d="M6 4h4l1 2h7l-2 4 2 4h-7l-1-2H6"/></svg>'
+  };
 
   // Perimeter walk matching the actual board art (First_Place_Board_
   // Assembly.png), measured directly from the image: a precise 12x12
@@ -485,10 +695,17 @@
 
   var CELL_PCT = 100 / 12;
 
-  // Staging spot (right of the logo art) and the dice popper's spot
-  // (mirrored, left of the logo art), both in the board's open center.
-  var STAGE_POS = { left: 74, bottom: 56 };
-  var DICE_POS = { left: 26, bottom: 54 };
+  // Staging spot (top-center, clear of both dice) and the two dice
+  // poppers' spots — player's on the left, The Doubt's mirrored on the
+  // right — all in the board's open center.
+  var STAGE_POS = { left: 50, bottom: 76 };
+  var DICE_POS = { left: 22, bottom: 56 };
+  var DOUBT_DICE_POS = { left: 78, bottom: 56 };
+
+  function cellPercent(n) {
+    var pos = squarePosition(n);
+    return { left: (pos.col - 1 + 0.5) * CELL_PCT, bottom: 100 - pos.row * CELL_PCT };
+  }
 
   function placeTokenAt(leftPct, bottomPct) {
     var token = document.getElementById('board-token');
@@ -497,14 +714,45 @@
   }
 
   function placeToken(n) {
-    var pos = squarePosition(n);
-    placeTokenAt((pos.col - 1 + 0.5) * CELL_PCT, 100 - pos.row * CELL_PCT);
+    var p = cellPercent(n);
+    placeTokenAt(p.left, p.bottom);
+  }
+
+  function placeDoubtToken(n) {
+    var p = cellPercent(n);
+    var token = document.getElementById('doubt-token');
+    token.style.left = p.left + '%';
+    token.style.bottom = p.bottom + '%';
+  }
+
+  function getDoubtSquare() {
+    return parseInt(localStorage.getItem('doubtSquare') || '1', 10);
+  }
+  function setDoubtSquare(n) {
+    localStorage.setItem('doubtSquare', String(n));
   }
 
   function positionDicePopper() {
     var popper = document.getElementById('dice-popper');
     popper.style.left = DICE_POS.left + '%';
     popper.style.bottom = DICE_POS.bottom + '%';
+  }
+
+  function positionDoubtDicePopper() {
+    var popper = document.getElementById('doubt-popper');
+    popper.style.left = DOUBT_DICE_POS.left + '%';
+    popper.style.bottom = DOUBT_DICE_POS.bottom + '%';
+  }
+
+  // Reveal card: centered near wherever the token landed, clamped so
+  // its box (62% wide, roughly half that tall) never runs off the board.
+  function positionRevealCard(square) {
+    var p = cellPercent(square);
+    var leftPct = Math.max(31, Math.min(69, p.left));
+    var topPct = Math.max(24, Math.min(76, 100 - p.bottom));
+    var card = document.getElementById('reveal-card');
+    card.style.left = leftPct + '%';
+    card.style.top = topPct + '%';
   }
 
   var screens = {
@@ -528,6 +776,8 @@
     localStorage.removeItem('gameSquare');
     localStorage.removeItem('pendingRoll');
     localStorage.removeItem('gameLoseTurn');
+    localStorage.removeItem('doubtSquare');
+    localStorage.removeItem('pendingDoubtRoll');
   }
 
   // ---------- Screen 1: character select ----------
@@ -538,6 +788,8 @@
       localStorage.removeItem('gameSquare');
       localStorage.removeItem('pendingRoll');
       localStorage.removeItem('gameLoseTurn');
+      localStorage.removeItem('doubtSquare');
+      localStorage.removeItem('pendingDoubtRoll');
       enterStaging();
     });
   });
@@ -565,6 +817,17 @@
     document.getElementById('click-callout').classList.remove('hide');
     setDieFace(1);
     document.getElementById('roll-result').hidden = true;
+    document.getElementById('pacing-note').hidden = true;
+
+    // The Doubt rolls paired with the player from the very first roll —
+    // its popper is visible from staging onward. Its token and the
+    // Roomie Wall only appear once there's an actual position to show
+    // (i.e. after that first roll resolves).
+    positionDoubtDicePopper();
+    document.getElementById('doubt-popper').hidden = false;
+    setDoubtDieFace(1);
+    document.getElementById('doubt-token').hidden = true;
+    document.getElementById('roomie-wall').hidden = true;
 
     showScreen('board');
   }
@@ -582,6 +845,14 @@
 
   function setDieFace(n) {
     var die = document.getElementById('die');
+    var on = DIE_FACES[n] || [];
+    PIP_CLASSES.forEach(function (cls) {
+      die.querySelector('.pip.' + cls).classList.toggle('visible', on.indexOf(cls) !== -1);
+    });
+  }
+
+  function setDoubtDieFace(n) {
+    var die = document.getElementById('doubt-die');
     var on = DIE_FACES[n] || [];
     PIP_CLASSES.forEach(function (cls) {
       die.querySelector('.pip.' + cls).classList.toggle('visible', on.indexOf(cls) !== -1);
@@ -627,18 +898,27 @@
     document.getElementById('pacing-note').hidden = true;
 
     var die = document.getElementById('die');
+    var doubtDie = document.getElementById('doubt-die');
     die.classList.add('rolling');
+    doubtDie.classList.add('rolling');
 
+    // The Doubt rolls automatically, paired with the player — no
+    // separate click, both dice tumble at once and settle together.
     var ticks = 0;
     var maxTicks = 9;
     var tickInterval = setInterval(function () {
       setDieFace(1 + Math.floor(Math.random() * 6));
+      setDoubtDieFace(1 + Math.floor(Math.random() * 6));
       ticks++;
       if (ticks >= maxTicks) {
         clearInterval(tickInterval);
         var result = 1 + Math.floor(Math.random() * 6);
+        var doubtResult = 1 + Math.floor(Math.random() * 6);
         setDieFace(result);
+        setDoubtDieFace(doubtResult);
         die.classList.remove('rolling');
+        doubtDie.classList.remove('rolling');
+        localStorage.setItem('pendingDoubtRoll', String(doubtResult));
         if (localStorage.getItem('gameSquare')) {
           rollForTurn(result);
         } else {
@@ -656,17 +936,20 @@
     resultEl.textContent = 'You rolled a ' + result + '!';
     resultEl.hidden = false;
 
+    // Always show the gate after the very first roll — don't shortcut
+    // on the generic site-wide hasEnteredEmail flag here, since that
+    // just means "this device confirmed some email once before," not
+    // "the email this player is about to type is confirmed." The gate
+    // form's own /api/check-subscriber check (below) is what correctly
+    // verifies the ACTUAL email typed in, and skips straight through
+    // when that one is already confirmed.
     window.setTimeout(function () {
-      if (localStorage.getItem('hasEnteredEmail') === 'true') {
-        completeOpeningMove();
-      } else {
-        var key = getCharacterKey();
-        var c = CHARACTERS[key];
-        document.getElementById('gate-sub').textContent =
-          'Enter your email to move ' + c.name + ' through the game.';
-        renderGatePicked();
-        showScreen('gate');
-      }
+      var key = getCharacterKey();
+      var c = CHARACTERS[key];
+      document.getElementById('gate-sub').textContent =
+        'Enter your email to move ' + c.name + ' through the game.';
+      renderGatePicked();
+      showScreen('gate');
     }, 900);
   }
 
@@ -760,14 +1043,113 @@
     });
   })();
 
-  // ---------- Screen 3 (part 2): the roll counts — animate staging ->
-  // Square 1 -> rolled square -> (if that square's own effect moves the
-  // token again) its resolved final square, without re-triggering that
-  // final square's own effect ----------
+  // ---------- Reveal card: pops up large, centered near the token,
+  // large icon on top, clear copy below. Resolve behavior by type:
+  // milestone/setback/story/corner/finish auto-continue; connection
+  // needs an honor-system "Confirm" (per the design doc's verification
+  // rule); collectible needs a "Reveal" tap. Visual redesign only —
+  // does not change which squares do what, just how landing on one
+  // is shown and (for connection/collectible) confirmed. ----------
+  function showRevealCard(outcome, characterKey, onDone) {
+    var type = outcome.landedType || 'milestone';
+    var icon = document.getElementById('reveal-icon');
+    var tag = document.getElementById('reveal-tag');
+    var title = document.getElementById('reveal-title');
+    var text = document.getElementById('reveal-text');
+    var action = document.getElementById('reveal-action');
+    var hint = document.getElementById('reveal-hint');
+    var overlay = document.getElementById('reveal-overlay');
+
+    icon.className = 'reveal-icon type-' + type;
+    icon.innerHTML = TYPE_ICON[type] || '';
+    tag.className = 'reveal-tag type-' + type;
+    tag.textContent = TYPE_LABEL[type] || '';
+    title.textContent = outcome.landedLabel || ('Square ' + outcome.landedSquare);
+    text.textContent = outcome.landedText || '';
+
+    positionRevealCard(outcome.landedSquare);
+
+    var closed = false;
+    function closeAndDone() {
+      if (closed) return;
+      closed = true;
+      overlay.classList.remove('open');
+      window.setTimeout(onDone, 260); // let the close transition play first
+    }
+
+    if (type === 'connection') {
+      action.hidden = false;
+      action.textContent = 'Confirm';
+      hint.hidden = true;
+      action.onclick = closeAndDone;
+    } else if (type === 'collectible') {
+      action.hidden = false;
+      action.textContent = 'Reveal';
+      hint.hidden = true;
+      action.onclick = closeAndDone;
+    } else {
+      action.hidden = true;
+      action.onclick = null;
+      hint.hidden = false;
+      hint.textContent = 'Continuing…';
+      window.setTimeout(closeAndDone, 1800);
+    }
+
+    overlay.classList.add('open');
+  }
+
+  // ---------- The Doubt: rolls paired with the player (see the shared
+  // click handler above), then moves once the player's landing type is
+  // known — baseline creep + the new die roll + setback/connection
+  // modifiers, all additive per the follow-up clarification. Checks the
+  // catch condition against the player's own final square. ----------
+  function resolveDoubtTurn(playerOutcome, doubtRoll, onDone) {
+    var doubtFrom = getDoubtSquare();
+    var modifier = playerOutcome.landedType === 'setback' ? 1
+      : (playerOutcome.landedType === 'connection' ? -2 : 0);
+    var doubtMove = 1 + doubtRoll + modifier; // 1 = existing baseline creep
+    var doubtTo = Math.max(1, Math.min(44, doubtFrom + doubtMove));
+
+    window.setTimeout(function () {
+      placeDoubtToken(doubtTo);
+      setDoubtSquare(doubtTo);
+
+      if (doubtTo >= playerOutcome.finalSquare) {
+        // Caught: player resets to Square 1, Roomies kept (n/a — not
+        // built yet), Doubt resets to its starting distance behind.
+        window.setTimeout(function () {
+          localStorage.setItem('gameSquare', '1');
+          setDoubtSquare(1);
+          placeToken(1);
+          placeDoubtToken(1);
+          var resultEl = document.getElementById('roll-result');
+          resultEl.textContent = 'The Doubt caught you — back to Square 1. (Any Roomies collected are kept.)';
+          resultEl.hidden = false;
+          window.setTimeout(onDone, 1200);
+        }, 500);
+      } else {
+        if (!localStorage.getItem('gameSquare') || parseInt(localStorage.getItem('gameSquare'), 10) !== playerOutcome.finalSquare) {
+          localStorage.setItem('gameSquare', String(playerOutcome.finalSquare));
+        }
+        onDone();
+      }
+    }, 300);
+  }
+
+  function finishTurnUI() {
+    localStorage.removeItem('pendingRoll');
+    localStorage.removeItem('pendingDoubtRoll');
+    var finalSq = parseInt(localStorage.getItem('gameSquare') || '1', 10);
+    document.getElementById('board-sub').textContent = 'Square ' + finalSq + ' of 44.';
+    showPacingNoticeIfNeeded();
+    document.getElementById('dice-dome').disabled = (finalSq >= 44);
+  }
+
   function completeOpeningMove() {
     var key = getCharacterKey();
     var c = CHARACTERS[key];
     var roll = parseInt(localStorage.getItem('pendingRoll') || '1', 10);
+    var doubtRoll = parseInt(localStorage.getItem('pendingDoubtRoll') || '1', 10);
     var rolledSquare = 1 + roll;
     var outcome = resolveLanding(rolledSquare, key);
 
@@ -782,31 +1164,41 @@
     token.classList.remove('drop-in');
     placeTokenAt(STAGE_POS.left, STAGE_POS.bottom);
 
-    // The dice popper stays put and active — it's the same control used
-    // for every future turn, not a one-time intro piece.
+    // Both poppers, the Doubt's token, and the Roomie Wall are all
+    // permanent fixtures from here on — not one-time intro pieces.
     positionDicePopper();
     document.getElementById('dice-popper').hidden = false;
+    positionDoubtDicePopper();
+    document.getElementById('doubt-popper').hidden = false;
+    document.getElementById('doubt-token').hidden = false;
+    placeDoubtToken(getDoubtSquare());
+    showRoomieWall();
 
     showScreen('board');
 
-    var t = 250;
-    window.setTimeout(function () { placeToken(1); }, t);                 // staging -> Square 1
-    t += 700;
-    window.setTimeout(function () { placeToken(rolledSquare); }, t);      // the roll itself
-    if (outcome.finalSquare !== rolledSquare) {
-      t += 900;
-      window.setTimeout(function () { placeToken(outcome.finalSquare); }, t); // that square's own effect firing
-    }
-    t += 700;
     window.setTimeout(function () {
-      localStorage.setItem('gameSquare', String(outcome.finalSquare));
-      if (outcome.loseTurn) localStorage.setItem('gameLoseTurn', 'true');
-      localStorage.removeItem('pendingRoll');
-      document.getElementById('board-sub').textContent = 'Square ' + outcome.finalSquare + ' of 44.';
-      showLandingSummary(outcome, key);
-      showPacingNoticeIfNeeded();
-      document.getElementById('dice-dome').disabled = (outcome.finalSquare >= 44);
-    }, t);
+      placeToken(1); // staging -> Square 1
+      window.setTimeout(function () {
+        placeToken(rolledSquare); // the roll itself
+        window.setTimeout(function () {
+          showRevealCard(outcome, key, function () {
+            var afterEffect = function () {
+              resolveDoubtTurn(outcome, doubtRoll, function () {
+                finishTurnUI();
+              });
+            };
+            if (outcome.finalSquare !== rolledSquare) {
+              window.setTimeout(function () {
+                placeToken(outcome.finalSquare); // that square's own effect firing
+                window.setTimeout(afterEffect, 500);
+              }, 200);
+            } else {
+              afterEffect();
+            }
+          });
+        }, 500);
+      }, 700);
+    }, 250);
   }
 
   // ---------- A normal turn, once the player already has a board
@@ -814,6 +1206,7 @@
   // currently are, resolve that landing square's effect. No gate. ----------
   function rollForTurn(roll) {
     var key = getCharacterKey();
+    var doubtRoll = parseInt(localStorage.getItem('pendingDoubtRoll') || '1', 10);
     var from = parseInt(localStorage.getItem('gameSquare') || '1', 10);
 
     if (from >= 44) {
@@ -821,6 +1214,7 @@
       doneEl.textContent = "You've already reached the Dream, Realized!";
       doneEl.hidden = false;
       document.getElementById('dice-dome').disabled = true;
+      localStorage.removeItem('pendingDoubtRoll');
       return;
     }
 
@@ -831,37 +1225,61 @@
 
     document.getElementById('roll-result').hidden = true;
 
-    var t = 150;
-    window.setTimeout(function () { placeToken(landedSquare); }, t);
-    if (outcome.finalSquare !== landedSquare) {
-      t += 900;
-      window.setTimeout(function () { placeToken(outcome.finalSquare); }, t);
-    }
-    t += 700;
     window.setTimeout(function () {
-      localStorage.setItem('gameSquare', String(outcome.finalSquare));
-      if (outcome.loseTurn) localStorage.setItem('gameLoseTurn', 'true');
-      document.getElementById('board-sub').textContent = 'Square ' + outcome.finalSquare + ' of 44.';
-      showLandingSummary(outcome, key);
-      showPacingNoticeIfNeeded();
-      document.getElementById('dice-dome').disabled = (outcome.finalSquare >= 44);
-    }, t);
+      placeToken(landedSquare);
+      window.setTimeout(function () {
+        showRevealCard(outcome, key, function () {
+          var afterEffect = function () {
+            resolveDoubtTurn(outcome, doubtRoll, function () {
+              finishTurnUI();
+            });
+          };
+          if (outcome.finalSquare !== landedSquare) {
+            window.setTimeout(function () {
+              placeToken(outcome.finalSquare);
+              window.setTimeout(afterEffect, 500);
+            }, 200);
+          } else {
+            afterEffect();
+          }
+        });
+      }, 500);
+    }, 150);
   }
 
-  function showLandingSummary(outcome, characterKey) {
-    var landedSq = BOARD_BY_N[outcome.landedSquare];
-    var pieces = [];
-    pieces.push('Landed on Square ' + outcome.landedSquare +
-      (landedSq && landedSq.label ? ' (' + landedSq.label + ')' : '') + '.');
-    if (outcome.landedText) pieces.push(outcome.landedText);
-    if (outcome.finalSquare !== outcome.landedSquare) {
-      pieces.push('Now on Square ' + outcome.finalSquare + '.');
-    }
-    if (outcome.loseTurn) pieces.push('(Lose a turn — turn-taking is coming in a future update.)');
+  // ---------- Roomie Wall — visual home for the (not-yet-built) Roomie
+  // collection system. Appears once the first roll happens, replacing
+  // the mug-and-keys art baked into the board image at that spot. 16
+  // empty slots, 4 per character; the logo/tagline above are untouched
+  // since they're higher up in the image, outside this overlay's area. ----------
+  function showRoomieWall() {
+    buildRoomieWallOnce();
+    document.getElementById('roomie-wall').hidden = false;
+  }
 
-    var resultEl = document.getElementById('roll-result');
-    resultEl.textContent = pieces.join(' ');
-    resultEl.hidden = false;
+  function buildRoomieWallOnce() {
+    var container = document.getElementById('roomie-slots');
+    if (container.children.length) return;
+    ['fran', 'jeremy', 'will', 'martha'].forEach(function (charKey) {
+      var col = document.createElement('div');
+      col.className = 'roomie-col';
+
+      var label = document.createElement('div');
+      label.className = 'roomie-col-label';
+      label.textContent = CHARACTERS[charKey].name;
+      col.appendChild(label);
+
+      var slots = document.createElement('div');
+      slots.className = 'roomie-col-slots';
+      for (var i = 0; i < 4; i++) {
+        var slot = document.createElement('div');
+        slot.className = 'roomie-slot';
+        slots.appendChild(slot);
+      }
+      col.appendChild(slots);
+
+      container.appendChild(col);
+    });
   }
 
   // ---------- Settled board view (returning to /game after at least
@@ -889,6 +1307,14 @@
     document.getElementById('dice-dome').disabled = (squareNum >= 44);
     document.getElementById('click-callout').classList.add('hide'); // already introduced once
     setDieFace(1);
+
+    positionDoubtDicePopper();
+    document.getElementById('doubt-popper').hidden = false;
+    setDoubtDieFace(1);
+    document.getElementById('doubt-token').hidden = false;
+    placeDoubtToken(getDoubtSquare());
+
+    showRoomieWall();
 
     showScreen('board');
   }
