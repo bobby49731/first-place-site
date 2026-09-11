@@ -9,7 +9,7 @@
 - Single-player vs. the board (not racing other real players)
 - Pacing: flexible — a few moves per visit, fine if someone finishes in one sitting
 - Roomie collectibles: 8 total squares (2 chances per character), found by landing on "Find a Roomie" squares
-- Roomie Gate (Square 23): need at least 2 Roomies collected to pass — if you don't have them, you're sent back to find more
+- Roomie Gate (Square 23): need at least 2 Roomies collected (from the shared pool of 16) to pass — if you don't have them, you're sent back to Square 15 to go find more.
 - Finish reward: reaching Square 44 reveals that character's "dream, realized" moment + a direct pledge link into their product card. Collecting all 4 Roomies unlocks a bonus/"perfect completion" moment.
 
 **Movement rule (prevents infinite/confusing chains):**
@@ -106,35 +106,17 @@ Each character has 4 flavor squares (8, 19, 30, 41) that auto-advance with no ac
 
 ---
 
-## Roomie Collectible Squares (per-character, 8 chances = 2 per Roomie)
+## Roomie Collectible Squares (shared pool of 16, one collection per player account)
 
-**Important correction from initial draft:** Since the player picks ONE character to play as, Roomie squares award items from THAT character's own set of 4 Roomies — not one borrowed from each of the other three characters. The board layout (which squares are Roomie squares) is identical for everyone; only which item gets awarded differs based on who you're playing as.
+**Updated from the original per-character design:** Roomies are NOT tied to whichever character you're currently playing. There's ONE shared 16-item collection per player, tracked in localStorage. Land on a collectible square as Fran, switch to play as Jeremy — your collected Roomies stay exactly as they were. Squares 5, 15, 26, and 37 each award a random not-yet-collected Roomie from the full pool of 16. Once all 16 are collected, landing on a collectible square instead gives a small bonus hop forward rather than erroring.
 
-Squares 5, 15, 26, and 37 are Roomie squares. Since there are 4 Roomies per character and 4 Roomie squares on the board, each landing could award a random not-yet-collected Roomie from your character's set, with a second full pass giving repeat chances if the board is played more than once (or simply: first 4 landings work through the set in order, any landings after that once complete could re-award duplicates or convert to a small bonus).
+The pool of 16 (3 items per character + 4 shared/bonus items, per the final art pack):
 
-### Martha's Roomies
-- **Martha's Spinner: The Penclet** — A pencil with a loose rubber-band bracelet that spins, stretches, clicks and pops.
-- **Martha's Diva Dome: I'm Walking Here** — An indestructible personal-boundary bubble.
-- **The Chair Recognizes You: Martha's Senate Meeting Clipboard**
-- **Martha's Snot a Problem: The Sucker**
-
-### Flava Fran's Roomies
-- **Fran's Frooney** — A lovable, tug-friendly dog toy.
-- **Flava Fran's Bubblegum Beats** — Her candy-colored turntables.
-- **Flava Fran's Bangle Wrangler** — The bracelet holder that keeps her bling together.
-- **Flava Fran's Open Mic: The Floor Is Fran's**
-
-### Jeremy's Roomies
-- **Misplaced by Jeremy** — The little bag that keeps life together.
-- **The Cheeseman: Jeremy's Very Important Cheese Board**
-- **Jeremy's Job Launcher: The Hire-Me Briefcase**
-- **Jeremy's Soccer Cleats: The Goal Getters**
-
-### Will's Roomies
-- **Will You Be Mine?: Will's Talking Dog-Grooming Brush**
-- **Will's Do Not Disturb Headphones**
-- **Will's Thirst-Aid Vessel: Water or Root Beer?**
-- **Will's Chair Pants: Sit Happens**
+**Martha:** Penclet, Diva Dome, Clipboard
+**Fran:** Frooney, Bubblegum Beats, Bangle Wrangler
+**Jeremy:** Bag, Cheese Board, Job Launcher
+**Will:** Headphones, Root Beer/Water Mug, Brush
+**Shared/bonus (not character-specific):** Toasty Smoke Detector, Lost Sock, Cut-It-Out Scissors, First Place Ribbon
 
 ## The Villain: "The Doubt"
 
