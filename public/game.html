@@ -95,20 +95,6 @@
   .char-name{font-family:'Baloo 2', sans-serif; font-weight:700; font-size:16px; color:var(--plum); margin-bottom:6px;}
   .char-dream{font-size:12.5px; color:var(--ink-soft); line-height:1.4;}
 
-  /* Board shown small behind the character cards, present from the very
-     first screen but not competing with selection for attention. */
-  .select-stage{position:relative;}
-  .select-board-bg{
-    position:absolute;
-    top:50%; left:50%; transform:translate(-50%, -50%);
-    width:60%; max-width:480px;
-    opacity:0.32;
-    border-radius:16px;
-    z-index:0;
-    pointer-events:none;
-  }
-  .select-stage .char-grid{position:relative; z-index:1;}
-
   /* EMAIL GATE — same visual/interaction pattern as the shop page's
      unlock section and the homepage door/modal gates. */
   .gate-card{max-width:440px; margin:36px auto 0; text-align:center;}
@@ -417,7 +403,6 @@
   }
   .reveal-action:hover{background:#FFC15A;}
   .reveal-action[hidden]{display:none;}
-  .reveal-hint{font-size:12px; color:var(--ink-soft); margin-top:10px;}
   .reveal-tag.type-corner{background:var(--plum-deep);}
   .reveal-tag.type-milestone{background:var(--teal);}
   .reveal-tag.type-setback{background:var(--setback);}
@@ -504,12 +489,11 @@
   }
   .doubt-card-action:hover{background:#E8E2EF;}
   .doubt-card-action[hidden]{display:none;}
-  .doubt-card-hint{font-size:12px; color:#9C90A8; margin-top:4px;}
-  .doubt-card-hint[hidden]{display:none;}
 
-  /* THE DOUBT'S VOICE — small, quick, auto-dismissing quote bubble
-     near his die, shown every turn except a catch turn (the doubt-
-     overlay "caught" moment takes over instead that turn). */
+  /* THE DOUBT'S VOICE — small, quick quote bubble near his die, shown
+     every turn except a catch turn (the doubt-overlay "caught" moment
+     takes over instead that turn). Tap-required, like every other
+     card. */
   .doubt-voice{
     position:absolute;
     left:78%; top:28%;
@@ -536,6 +520,71 @@
     border-left:6px solid transparent; border-right:6px solid transparent;
     border-top:6px solid #17121D;
   }
+  .doubt-voice-action{
+    display:block; margin:10px auto 0;
+    background:#EDE7F2; color:#17121D; border:0;
+    padding:6px 18px; border-radius:8px;
+    font-family:'Baloo 2', sans-serif; font-weight:700;
+    font-size:clamp(10px, 1.8vw, 11.5px);
+    cursor:pointer; transition:background 0.2s ease;
+  }
+  .doubt-voice-action:hover{background:#fff;}
+
+  /* CHARACTER SELECT headline — bolder and darker than the default
+     .game-sub (which stays soft/muted for the gate and board screens). */
+  .select-sub{font-weight:800; color:var(--ink);}
+
+  /* DREAM + OBJECTIVE — shown once, right after picking a character,
+     before staging. Big portrait beside a card stating what the player
+     is actually here to do. */
+  .dream-stage{
+    display:flex; align-items:center; justify-content:center;
+    gap:clamp(20px, 4vw, 48px); flex-wrap:wrap;
+    margin-top:40px;
+  }
+  .dream-portrait{
+    width:min(46vw, 260px);
+    filter:drop-shadow(0 10px 22px rgba(42,32,51,0.28));
+  }
+  .dream-card{
+    background:#fff; border:1px solid var(--line); border-radius:20px;
+    padding:28px 30px; max-width:420px; text-align:left;
+    box-shadow:0 10px 30px rgba(42,32,51,0.12);
+  }
+  .dream-label{
+    font-family:'Baloo 2', sans-serif; font-weight:800; font-size:12px;
+    letter-spacing:0.08em; text-transform:uppercase; color:var(--gold-deep);
+    margin:0 0 10px;
+  }
+  .dream-text{
+    font-family:'Baloo 2', sans-serif; font-weight:700;
+    font-size:clamp(17px, 2.4vw, 21px);
+    color:var(--plum); line-height:1.35; margin:0 0 14px;
+  }
+  .dream-objective{
+    font-size:14.5px; color:var(--ink-soft); line-height:1.55; margin:0 0 22px;
+  }
+  .dream-continue{
+    display:block; width:100%;
+    background:var(--gold); color:var(--plum); border:0; border-radius:999px;
+    padding:13px 20px;
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:15px;
+    cursor:pointer; transition:background 0.2s ease;
+  }
+  .dream-continue:hover{background:#FFC15A;}
+  @media (max-width:640px){
+    .dream-stage{flex-direction:column;}
+    .dream-card{text-align:center;}
+  }
+
+  /* DICE ROLL PROMPT — the same pulsing-callout treatment used for the
+     very first roll now reappears after every turn, cueing the player
+     back to their own die (never The Doubt's, which he rolls himself). */
+  .dice-dome.prompt{animation:dome-pulse 1.4s ease-in-out infinite;}
+  @keyframes dome-pulse{
+    0%, 100%{box-shadow:0 6px 16px rgba(42,32,51,0.28), inset 0 -8px 16px rgba(42,32,51,0.12), inset 0 3px 6px rgba(255,255,255,0.6), 0 0 0 rgba(255,199,74,0);}
+    50%{box-shadow:0 6px 20px rgba(42,32,51,0.32), inset 0 -8px 16px rgba(42,32,51,0.12), inset 0 3px 6px rgba(255,255,255,0.6), 0 0 22px 7px rgba(255,199,74,0.55);}
+  }
 </style>
 </head>
 <body>
@@ -553,9 +602,8 @@
   <!-- SCREEN 1: CHARACTER SELECT -->
   <section id="screen-select" class="game-screen">
     <h1 class="game-title">Choose Your Character</h1>
-    <p class="game-sub">Pick who you're playing as — you'll follow their path to the dream.</p>
+    <p class="game-sub select-sub">Pick who you're playing as — you'll follow their path to the dream.</p>
     <div class="select-stage">
-      <img class="select-board-bg" src="assets/game/First_Place_Board_Assembly.png" alt="">
       <div class="char-grid">
         <button type="button" class="char-card" data-character="fran">
           <img src="assets/game/Fran-playing-piece.png" alt="Fran">
@@ -577,6 +625,22 @@
           <span class="char-name">Martha</span>
           <span class="char-dream">A speaking tour across the US.</span>
         </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREEN 1b: DREAM + OBJECTIVE — shown once, right after picking a
+       character, before staging. Sets up what the player is actually
+       trying to do; requires a tap since it's not just flavor. -->
+  <section id="screen-dream" class="game-screen" hidden>
+    <h1 class="game-title">Your Dream</h1>
+    <div class="dream-stage">
+      <img class="dream-portrait" id="dream-portrait" src="" alt="">
+      <div class="dream-card">
+        <p class="dream-label">The Dream</p>
+        <p class="dream-text" id="dream-text"></p>
+        <p class="dream-objective" id="dream-objective"></p>
+        <button type="button" class="dream-continue" id="dream-continue">Let's go</button>
       </div>
     </div>
   </section>
@@ -613,7 +677,7 @@
         click handler and roll logic don't need to change.
       -->
       <div class="dice-popper" id="dice-popper" hidden>
-        <div class="click-callout" id="click-callout">CLICK ME</div>
+        <div class="click-callout" id="click-callout">Press me</div>
         <div class="dice-base"></div>
         <button type="button" class="dice-dome" id="dice-dome" aria-label="Roll the die">
           <div class="die" id="die">
@@ -663,8 +727,7 @@
           <span class="reveal-tag" id="reveal-tag"></span>
           <div class="reveal-title" id="reveal-title"></div>
           <p class="reveal-text" id="reveal-text"></p>
-          <button type="button" class="reveal-action" id="reveal-action" hidden></button>
-          <p class="reveal-hint" id="reveal-hint" hidden>Continuing…</p>
+          <button type="button" class="reveal-action" id="reveal-action">Continue</button>
         </div>
       </div>
 
@@ -686,18 +749,19 @@
             <li><span class="doubt-rule-dot"></span>Catches you? Back to Square 1 — any Roomies you've collected stay safe</li>
           </ul>
           <button type="button" class="doubt-card-action" id="doubt-card-action" hidden>Continue</button>
-          <p class="doubt-card-hint" id="doubt-card-hint" hidden>Continuing…</p>
         </div>
       </div>
 
       <!--
-        THE DOUBT'S VOICE — small, quick, auto-dismissing, appears near
-        his die each turn (alongside the player's own reveal card, not
-        replacing it) except on a catch turn, where the doubt-overlay
-        "caught" moment takes over instead.
+        THE DOUBT'S VOICE — small and quick, appears near his die each
+        turn (alongside the player's own reveal card, not replacing it)
+        except on a catch turn, where the doubt-overlay "caught" moment
+        takes over instead. Requires a tap to continue, like every other
+        card.
       -->
       <div class="doubt-voice" id="doubt-voice" hidden>
         <span id="doubt-voice-text"></span>
+        <button type="button" class="doubt-voice-action" id="doubt-voice-action">Continue</button>
       </div>
     </div>
 
@@ -713,11 +777,21 @@
   var EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   var CHARACTERS = {
-    fran:   { name: 'Fran',   token: 'assets/game/Fran-playing-piece.png' },
-    jeremy: { name: 'Jeremy', token: 'assets/game/Jeremy-playing-piece.png' },
-    will:   { name: 'Will',   token: 'assets/game/Will-playing-piece.png' },
-    martha: { name: 'Martha', token: 'assets/game/Martha-playing-piece.png' }
+    fran:   { name: 'Fran',   token: 'assets/game/Fran-playing-piece.png',
+              dream: "Fran's dream is to record a bubblegum rap album — music video included." },
+    jeremy: { name: 'Jeremy', token: 'assets/game/Jeremy-playing-piece.png',
+              dream: "Jeremy's dream is a ride-along with the cops of Cops." },
+    will:   { name: 'Will',   token: 'assets/game/Will-playing-piece.png',
+              dream: "Will's dream is to write alongside the Star Wars universe — even the fan fiction legends." },
+    martha: { name: 'Martha', token: 'assets/game/Martha-playing-piece.png',
+              dream: "Martha's dream is a speaking tour across the US." }
   };
+
+  // Shared objective line, shown under every character's own dream on
+  // the dream/objective screen right after picking them.
+  function objectiveText(name) {
+    return 'Get ' + name + ' to their dream — but watch out for doubts and the many setbacks of independent living. Enjoy.';
+  }
 
   // Full 44-square board, transcribed from first-place-board-game-
   // design.md. Kept here purely as data (not rendered — the board image
@@ -977,6 +1051,7 @@
 
   var screens = {
     select: document.getElementById('screen-select'),
+    dream: document.getElementById('screen-dream'),
     gate: document.getElementById('screen-gate'),
     board: document.getElementById('screen-board')
   };
@@ -1012,12 +1087,42 @@
       localStorage.removeItem('gameLoseTurn');
       localStorage.removeItem('doubtSquare');
       localStorage.removeItem('pendingDoubtRoll');
-      enterStaging();
+      showDreamScreen(key);
     });
+  });
+
+  // ---------- Screen 1b: dream + objective — one tap-required beat
+  // between picking a character and staging, setting up what the
+  // player is actually here to do. ----------
+  function showDreamScreen(key) {
+    var c = CHARACTERS[key];
+    var portrait = document.getElementById('dream-portrait');
+    portrait.src = c.token;
+    portrait.alt = c.name;
+    document.getElementById('dream-text').textContent = c.dream;
+    document.getElementById('dream-objective').textContent = objectiveText(c.name);
+    showScreen('dream');
+  }
+
+  document.getElementById('dream-continue').addEventListener('click', function () {
+    enterStaging();
   });
 
   // ---------- Screen 3 (part 1): staging — token parked center-right,
   // dice popper center-left, waiting for a roll ----------
+  // The "Press me" callout + pulsing dome, originally just a one-time
+  // tutorial cue for the very first roll, now reappears after EVERY
+  // turn (once all that turn's cards are dismissed) to draw the player
+  // back to their own die — never The Doubt's, which he rolls himself.
+  function showRollPrompt() {
+    document.getElementById('click-callout').classList.remove('hide');
+    document.getElementById('dice-dome').classList.add('prompt');
+  }
+  function hideRollPrompt() {
+    document.getElementById('click-callout').classList.add('hide');
+    document.getElementById('dice-dome').classList.remove('prompt');
+  }
+
   function enterStaging() {
     var key = getCharacterKey();
     var c = CHARACTERS[key];
@@ -1036,7 +1141,7 @@
     positionDicePopper();
     document.getElementById('dice-popper').hidden = false;
     document.getElementById('dice-dome').disabled = false;
-    document.getElementById('click-callout').classList.remove('hide');
+    showRollPrompt();
     setDieFace(1);
     document.getElementById('roll-result').hidden = true;
     document.getElementById('pacing-note').hidden = true;
@@ -1116,7 +1221,7 @@
     var dome = this;
     if (dome.disabled) return;
     dome.disabled = true;
-    document.getElementById('click-callout').classList.add('hide');
+    hideRollPrompt();
     document.getElementById('pacing-note').hidden = true;
 
     var die = document.getElementById('die');
@@ -1267,15 +1372,10 @@
 
   // ---------- Reveal card: pops up large, centered near the token,
   // with the square's own tile art (cropped from the board's strip
-  // images) large up top and clear copy below. Resolve behavior by
-  // type: only connection needs an explicit tap ("Confirm" — the
-  // honor-system verification the design doc calls for on private
-  // actions like "email 3 friends"). Every other type — milestone,
-  // setback, story, corner, finish, and collectible (shows what Roomie
-  // was found) — auto-dismisses on its own after a short pause, to
-  // keep the game moving. ----------
-  var AUTO_DISMISS_MS = 1700;
-
+  // images) large up top and clear copy below. Every type — milestone,
+  // setback, story, corner, finish, collectible, and connection —
+  // requires a tap to continue; nothing auto-dismisses, so the player
+  // always has as long as they want with each card. ----------
   function showRevealCard(outcome, characterKey, onDone) {
     var type = outcome.landedType || 'milestone';
     var icon = document.getElementById('reveal-icon');
@@ -1283,7 +1383,6 @@
     var title = document.getElementById('reveal-title');
     var text = document.getElementById('reveal-text');
     var action = document.getElementById('reveal-action');
-    var hint = document.getElementById('reveal-hint');
     var overlay = document.getElementById('reveal-overlay');
 
     // A Roomie find shows its own item art instead of the generic
@@ -1310,26 +1409,20 @@
       window.setTimeout(onDone, 260); // let the close transition play first
     }
 
-    if (type === 'connection') {
-      action.hidden = false;
-      action.textContent = 'Confirm';
-      hint.hidden = true;
-      action.onclick = closeAndDone;
-    } else {
-      action.hidden = true;
-      action.onclick = null;
-      hint.hidden = false;
-      hint.textContent = 'Continuing…';
-      window.setTimeout(closeAndDone, AUTO_DISMISS_MS);
-    }
+    // Connection squares keep their honor-system "Confirm" wording
+    // (verifying a private action like "email 3 friends" actually
+    // happened); every other type just says "Continue" — both require
+    // the same tap.
+    action.textContent = (type === 'connection') ? 'Confirm' : 'Continue';
+    action.onclick = closeAndDone;
 
     overlay.classList.add('open');
   }
 
-  // ---------- The Doubt's voice — small, auto-dismissing, shown every
+  // ---------- The Doubt's voice — small and quick, shown every
   // non-catch turn alongside (right after) the player's own reveal
-  // card, never blocking it or requiring a tap. Rotates through the
-  // three design-doc lines in order. ----------
+  // card, never blocking it. Requires a tap to continue, like every
+  // other card. Rotates through the three design-doc lines in order. ----------
   var DOUBT_LINES = [
     "You'll never finish this.",
     "Nobody's really watching.",
@@ -1343,29 +1436,36 @@
     return line;
   }
 
-  function showDoubtVoice(line) {
+  function showDoubtVoice(line, onDone) {
     var voice = document.getElementById('doubt-voice');
+    var action = document.getElementById('doubt-voice-action');
     document.getElementById('doubt-voice-text').textContent = '“' + line + '”';
     voice.hidden = false;
     void voice.offsetWidth; // restart the pop-in if it's showing again quickly
     voice.classList.add('open');
-    window.setTimeout(function () {
+
+    var closed = false;
+    action.onclick = function () {
+      if (closed) return;
+      closed = true;
       voice.classList.remove('open');
-      window.setTimeout(function () { voice.hidden = true; }, 260);
-    }, 1700);
+      window.setTimeout(function () {
+        voice.hidden = true;
+        onDone();
+      }, 260);
+    };
   }
 
   // ---------- The Doubt's dramatic dark card — two modes: the one-time
-  // 'intro' (first time it ever moves, tap-required, explains the
-  // rules) and 'caught' (auto-dismisses, but takes priority over the
-  // small voice line that turn — a catch is never a quiet background
-  // event). ----------
+  // 'intro' (first time it ever moves, explains the rules) and 'caught'
+  // (its own clear moment, takes priority over the small voice line
+  // that turn — a catch is never a quiet background event). Both are
+  // tap-required, like every other card. ----------
   function showDoubtCard(mode, onDone) {
     var overlay = document.getElementById('doubt-overlay');
     var line = document.getElementById('doubt-card-line');
     var rules = document.getElementById('doubt-card-rules');
     var action = document.getElementById('doubt-card-action');
-    var hint = document.getElementById('doubt-card-hint');
 
     function close() {
       overlay.classList.remove('open');
@@ -1375,16 +1475,12 @@
     if (mode === 'intro') {
       line.textContent = "Something's already behind you.";
       rules.hidden = false;
-      action.hidden = false;
-      hint.hidden = true;
-      action.onclick = close;
     } else {
       line.textContent = 'Caught you. Back to Square 1 — any Roomies you’ve collected stay safe.';
       rules.hidden = true;
-      action.hidden = true;
-      hint.hidden = false;
-      window.setTimeout(close, 2300);
     }
+    action.hidden = false;
+    action.onclick = close;
 
     overlay.classList.add('open');
   }
@@ -1426,8 +1522,7 @@
             if (!localStorage.getItem('gameSquare') || parseInt(localStorage.getItem('gameSquare'), 10) !== playerOutcome.finalSquare) {
               localStorage.setItem('gameSquare', String(playerOutcome.finalSquare));
             }
-            showDoubtVoice(nextDoubtLine());
-            onDone();
+            showDoubtVoice(nextDoubtLine(), onDone);
           }
         }, 400);
       }, 300);
@@ -1447,7 +1542,12 @@
     var finalSq = parseInt(localStorage.getItem('gameSquare') || '1', 10);
     document.getElementById('board-sub').textContent = 'Square ' + finalSq + ' of 44.';
     showPacingNoticeIfNeeded();
-    document.getElementById('dice-dome').disabled = (finalSq >= 44);
+    var finished = finalSq >= 44;
+    document.getElementById('dice-dome').disabled = finished;
+    // All of this turn's cards are dismissed — cue the player back to
+    // their own die for the next roll (nothing to prompt once they've
+    // actually reached the Dream, Realized).
+    if (finished) { hideRollPrompt(); } else { showRollPrompt(); }
   }
 
   function completeOpeningMove() {
@@ -1461,7 +1561,7 @@
     document.getElementById('board-title').textContent = 'The Board — Playing as ' + c.name;
     document.getElementById('board-sub').textContent = "You're on your way!";
     document.getElementById('roll-result').hidden = true;
-    document.getElementById('click-callout').classList.add('hide');
+    hideRollPrompt();
 
     var token = document.getElementById('board-token');
     token.src = c.token;
@@ -1628,8 +1728,11 @@
 
     positionDicePopper();
     document.getElementById('dice-popper').hidden = false;
-    document.getElementById('dice-dome').disabled = (squareNum >= 44);
-    document.getElementById('click-callout').classList.add('hide'); // already introduced once
+    var alreadyFinished = squareNum >= 44;
+    document.getElementById('dice-dome').disabled = alreadyFinished;
+    // Returning to an in-progress game is itself "ready for the next
+    // roll" — same prompt as right after finishing a turn.
+    if (alreadyFinished) { hideRollPrompt(); } else { showRollPrompt(); }
     setDieFace(1);
 
     positionDoubtDicePopper();
