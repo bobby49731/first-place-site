@@ -403,6 +403,36 @@
   }
   .reveal-action:hover{background:#FFC15A;}
   .reveal-action[hidden]{display:none;}
+
+  /* INVITE FORM — swapped in for reveal-action on the 5 email-invite
+     Connection squares. Same card, same header (icon/tag/title/text),
+     just a different bottom section. */
+  .invite-form[hidden]{display:none;}
+  .invite-fields{
+    display:flex; flex-direction:column; gap:8px;
+    margin-bottom:12px;
+  }
+  .invite-input{
+    background:var(--paper-2); border:1px solid var(--line); border-radius:10px;
+    padding:11px 14px; font-family:'Inter', sans-serif; font-size:14.5px;
+    color:var(--ink); outline:none; width:100%; box-sizing:border-box;
+    transition:box-shadow 0.15s ease;
+  }
+  .invite-input::placeholder{color:#9A8FA6;}
+  .invite-input.invalid{box-shadow:inset 0 0 0 2px #E0637E;}
+  .invite-submit{
+    background:var(--gold); color:var(--plum); border:0;
+    padding:12px 28px; border-radius:10px; width:100%;
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:15px;
+    cursor:pointer; transition:background 0.2s ease;
+  }
+  .invite-submit:hover{background:#FFC15A;}
+  .invite-submit:disabled{opacity:0.7; cursor:not-allowed;}
+  .invite-message{margin-top:10px; font-size:13.5px; font-weight:500;}
+  .invite-message[hidden]{display:none;}
+  .invite-message.error{color:var(--setback);}
+  .invite-message.success{color:var(--teal);}
+
   .reveal-tag.type-corner{background:var(--plum-deep);}
   .reveal-tag.type-milestone{background:var(--teal);}
   .reveal-tag.type-setback{background:var(--setback);}
@@ -410,6 +440,7 @@
   .reveal-tag.type-collectible{background:var(--gold-deep);}
   .reveal-tag.type-story{background:var(--pink-deep);}
   .reveal-tag.type-finish{background:linear-gradient(135deg, var(--gold), var(--gold-deep));}
+  .reveal-tag.type-intro{background:var(--plum);}
 
   /* THE DOUBT — dramatic dark overlay, used for the one-time intro and
      for getting caught. Deliberately "drained of color" against the
@@ -728,6 +759,17 @@
           <div class="reveal-title" id="reveal-title"></div>
           <p class="reveal-text" id="reveal-text"></p>
           <button type="button" class="reveal-action" id="reveal-action">Continue</button>
+          <!--
+            Invite form — swapped in for reveal-action on the 5 direct-
+            contact Connection squares (4, 16, 22, 33, 38). Sends a real
+            email via /api/send-invite; only resolves the square's own
+            advance value and closes the card once that send succeeds.
+          -->
+          <form class="invite-form" id="invite-form" hidden>
+            <div class="invite-fields" id="invite-fields"></div>
+            <button type="submit" class="invite-submit" id="invite-submit">Send</button>
+            <p class="invite-message" id="invite-message" hidden></p>
+          </form>
         </div>
       </div>
 
@@ -837,7 +879,7 @@
     { n: 35, type: 'milestone', text: 'The one that gets your order right without asking twice. Found your favorite coffee shop. Advance 2.' },
     { n: 36, type: 'setback', text: "Of course it's raining, and of course you left it by the door. Forgot your umbrella. Move back 1." },
     { n: 37, type: 'collectible', text: 'Find a Roomie!' },
-    { n: 38, type: 'connection', text: 'Text a friend "guess what I\'m doing." Advance 3.' },
+    { n: 38, type: 'connection', text: "Email a friend: guess what I'm doing. Advance 3." },
     { n: 39, type: 'setback', text: "Round two of the group chat argument nobody wanted. Roommate drama, round 2. Move back 2." },
     { n: 40, type: 'milestone', text: "Nobody assigned it, nobody's grading it, you did it anyway. Hit a personal goal you set for yourself. Advance 2." },
     { n: 41, type: 'story', text: { fran: 'The beat drops.', jeremy: 'Radio call comes in — go time.', will: 'The whiteboard fills up.', martha: 'The arena lights come up.' } },
@@ -878,6 +920,14 @@
   var ROOMIE_GATE_MIN = 2;
   var ROOMIE_GATE_SQUARE = 23;
   var ROOMIE_GATE_BOUNCE_TO = 15; // most recent collectible square before the gate
+
+  // A dedicated collectible-square landing isn't a guaranteed find anymore —
+  // ~25% of the time (only when there's actually something left to find) it's
+  // a "so close!" near-miss instead: a glimpse of a specific not-yet-collected
+  // Roomie's own art without awarding it, plus the same small bonus-hop-
+  // forward consolation the "shelf's already full" case already uses. Over a
+  // full lap (4 landings) that averages out to ~3 genuine new Roomies.
+  var ROOMIE_NEAR_MISS_CHANCE = 0.25;
 
   function getCollectedRoomies() {
     try {
@@ -945,6 +995,29 @@
     });
   }
 
+  // ---------- First-time Roomie explainer — the very first time ANY
+  // character ever lands on one of the 4 dedicated collectible squares
+  // in this player's account, a one-time card explains the mechanic
+  // (go around as many times as you like, with any characters, to
+  // collect all 16) before that landing's own Roomie reveal shows. ----------
+  function maybeShowRoomieIntro(outcome, characterKey, onDone) {
+    if (outcome.landedType !== 'collectible' || localStorage.getItem('roomieIntroSeen') === 'true') {
+      onDone();
+      return;
+    }
+    localStorage.setItem('roomieIntroSeen', 'true');
+    var introOutcome = {
+      landedSquare: outcome.landedSquare,
+      landedType: 'intro',
+      landedLabel: 'Meet the Roomies',
+      finalSquare: outcome.landedSquare,
+      loseTurn: false,
+      landedText: "There's more than one path to the dream. Go around the board as many times as you like — with as many different characters as you like — to collect all 16 Roomies.",
+      landedRoomie: null
+    };
+    showRevealCard(introOutcome, characterKey, onDone);
+  }
+
   // "Only the square you land on via your move/spin triggers its effect.
   // If that effect moves your token again... the destination square's
   // own effect does NOT re-trigger" — first-place-board-game-design.md.
@@ -960,13 +1033,21 @@
 
     var landedRoomie = null;
     if (sq && sq.type === 'collectible') {
-      var awarded = awardRandomRoomie();
-      if (awarded) {
-        landedRoomie = awarded;
-        text = 'Found it! You picked up ' + awarded.name + '.';
-      } else {
-        text = "The shelf's already full — all 16 Roomies are yours! Bonus hop forward.";
+      var stillAvailable = ROOMIE_POOL.filter(function (r) { return getCollectedRoomies().indexOf(r.id) === -1; });
+      if (stillAvailable.length && Math.random() < ROOMIE_NEAR_MISS_CHANCE) {
+        var preview = stillAvailable[Math.floor(Math.random() * stillAvailable.length)];
+        landedRoomie = preview; // shows the Roomie's own art as a glimpse -- NOT collected
+        text = 'So close! You spot ' + preview.name + ' on a shelf, just out of reach. Bonus hop forward.';
         finalSquare = Math.min(44, square + 1);
+      } else {
+        var awarded = awardRandomRoomie();
+        if (awarded) {
+          landedRoomie = awarded;
+          text = 'Found it! You picked up ' + awarded.name + '.';
+        } else {
+          text = "The shelf's already full — all 16 Roomies are yours! Bonus hop forward.";
+          finalSquare = Math.min(44, square + 1);
+        }
       }
     } else if (square === ROOMIE_GATE_SQUARE) {
       var have = getCollectedRoomies().length;
@@ -996,7 +1077,8 @@
     connection: 'Connection',
     collectible: 'Collectible',
     story: 'Story Beat',
-    finish: 'Finish'
+    finish: 'Finish',
+    intro: 'New!'
   };
 
   // Larger versions of the same icon language used elsewhere on this
@@ -1427,6 +1509,11 @@
     var action = document.getElementById('reveal-action');
     var overlay = document.getElementById('reveal-overlay');
 
+    // Defensive reset in case the invite form was left showing from a
+    // prior card on one of the 5 email-invite squares.
+    action.hidden = false;
+    document.getElementById('invite-form').hidden = true;
+
     // A Roomie find shows its own item art instead of the generic
     // square-tile icon; refresh the wall now too, so the shelf visually
     // fills in right as the card announcing it appears.
@@ -1459,6 +1546,126 @@
     action.onclick = closeAndDone;
 
     overlay.classList.add('open');
+  }
+
+  // ---------- Invite form — the same reveal-card header (icon/tag/
+  // title/text), but with real email fields + a Send button standing
+  // in for the usual Continue/Confirm button, for the 5 direct-contact
+  // Connection squares (4, 16, 22, 33, 38). Squares 11, 27, and 43 are
+  // untouched and keep the plain honor-system Confirm button above.
+  // Only resolves the square's own advance value and closes once
+  // /api/send-invite actually confirms the send. ----------
+  var EMAIL_INVITE_SQUARES = {
+    4: 3,
+    16: 1,
+    22: 1,
+    33: 1,
+    38: 1
+  };
+
+  function showInviteCard(outcome, characterKey, onDone) {
+    var square = outcome.landedSquare;
+    var count = EMAIL_INVITE_SQUARES[square] || 1;
+    var icon = document.getElementById('reveal-icon');
+    var tag = document.getElementById('reveal-tag');
+    var title = document.getElementById('reveal-title');
+    var text = document.getElementById('reveal-text');
+    var action = document.getElementById('reveal-action');
+    var overlay = document.getElementById('reveal-overlay');
+    var form = document.getElementById('invite-form');
+    var fields = document.getElementById('invite-fields');
+    var submitBtn = document.getElementById('invite-submit');
+    var message = document.getElementById('invite-message');
+
+    icon.innerHTML = '<img src="' + iconSrcForSquare(outcome.landedSquare) + '" alt="">';
+    tag.className = 'reveal-tag type-' + (outcome.landedType || 'connection');
+    tag.textContent = TYPE_LABEL[outcome.landedType] || '';
+    title.textContent = outcome.landedLabel || ('Square ' + outcome.landedSquare);
+    text.textContent = outcome.landedText || '';
+    positionRevealCard(outcome.landedSquare);
+
+    action.hidden = true;
+    form.hidden = false;
+    message.hidden = true;
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Send';
+
+    fields.innerHTML = '';
+    var inputs = [];
+    for (var i = 0; i < count; i++) {
+      var input = document.createElement('input');
+      input.type = 'email';
+      input.className = 'invite-input';
+      input.placeholder = count > 1 ? ("Friend " + (i + 1) + "'s email") : "Friend's email";
+      input.required = true;
+      fields.appendChild(input);
+      inputs.push(input);
+    }
+
+    var closed = false;
+    function closeAndDone() {
+      if (closed) return;
+      closed = true;
+      overlay.classList.remove('open');
+      window.setTimeout(onDone, 260);
+    }
+
+    function showError(msg) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send';
+      message.hidden = false;
+      message.className = 'invite-message error';
+      message.textContent = msg;
+    }
+
+    form.onsubmit = function (e) {
+      e.preventDefault();
+      var emails = inputs.map(function (inp) { return inp.value.trim(); });
+      var allValid = emails.every(function (em) { return EMAIL_PATTERN.test(em); });
+      inputs.forEach(function (inp) { inp.classList.toggle('invalid', !EMAIL_PATTERN.test(inp.value.trim())); });
+      if (!allValid) {
+        showError(count > 1 ? 'Please enter a valid email for each friend.' : 'Please enter a valid email.');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending…';
+      message.hidden = true;
+
+      fetch('/api/send-invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ square: square, emails: emails })
+      })
+        .then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (data) {
+            return { ok: res.ok, data: data };
+          });
+        })
+        .then(function (result) {
+          if (result.ok && result.data && result.data.success) {
+            closeAndDone();
+          } else {
+            showError("Couldn't send right now — please try again.");
+          }
+        })
+        .catch(function () {
+          showError("Couldn't send right now — please try again.");
+        });
+    };
+
+    overlay.classList.add('open');
+  }
+
+  // Picks the invite-card for the 5 email-invite squares, the plain
+  // reveal-card for everything else (including the 3 connection squares
+  // that stay on the old honor-system Confirm button).
+  function showMainCard(outcome, characterKey, onDone) {
+    if (EMAIL_INVITE_SQUARES[outcome.landedSquare]) {
+      showInviteCard(outcome, characterKey, onDone);
+    } else {
+      showRevealCard(outcome, characterKey, onDone);
+    }
   }
 
   // ---------- The Doubt's voice — small and quick, shown every
@@ -1628,22 +1835,24 @@
       window.setTimeout(function () {
         placeToken(rolledSquare); // the roll itself
         window.setTimeout(function () {
-          showRevealCard(outcome, key, function () {
-            var afterEffect = function () {
-              maybeBonusRoomie(outcome, key, function () {
-                resolveDoubtTurn(outcome, doubtRoll, function () {
-                  finishTurnUI();
+          maybeShowRoomieIntro(outcome, key, function () {
+            showMainCard(outcome, key, function () {
+              var afterEffect = function () {
+                maybeBonusRoomie(outcome, key, function () {
+                  resolveDoubtTurn(outcome, doubtRoll, function () {
+                    finishTurnUI();
+                  });
                 });
-              });
-            };
-            if (outcome.finalSquare !== rolledSquare) {
-              window.setTimeout(function () {
-                placeToken(outcome.finalSquare); // that square's own effect firing
-                window.setTimeout(afterEffect, 500);
-              }, 200);
-            } else {
-              afterEffect();
-            }
+              };
+              if (outcome.finalSquare !== rolledSquare) {
+                window.setTimeout(function () {
+                  placeToken(outcome.finalSquare); // that square's own effect firing
+                  window.setTimeout(afterEffect, 500);
+                }, 200);
+              } else {
+                afterEffect();
+              }
+            });
           });
         }, 500);
       }, 700);
@@ -1677,22 +1886,24 @@
     window.setTimeout(function () {
       placeToken(landedSquare);
       window.setTimeout(function () {
-        showRevealCard(outcome, key, function () {
-          var afterEffect = function () {
-            maybeBonusRoomie(outcome, key, function () {
-              resolveDoubtTurn(outcome, doubtRoll, function () {
-                finishTurnUI();
+        maybeShowRoomieIntro(outcome, key, function () {
+          showMainCard(outcome, key, function () {
+            var afterEffect = function () {
+              maybeBonusRoomie(outcome, key, function () {
+                resolveDoubtTurn(outcome, doubtRoll, function () {
+                  finishTurnUI();
+                });
               });
-            });
-          };
-          if (outcome.finalSquare !== landedSquare) {
-            window.setTimeout(function () {
-              placeToken(outcome.finalSquare);
-              window.setTimeout(afterEffect, 500);
-            }, 200);
-          } else {
-            afterEffect();
-          }
+            };
+            if (outcome.finalSquare !== landedSquare) {
+              window.setTimeout(function () {
+                placeToken(outcome.finalSquare);
+                window.setTimeout(afterEffect, 500);
+              }, 200);
+            } else {
+              afterEffect();
+            }
+          });
         });
       }, 500);
     }, 150);
