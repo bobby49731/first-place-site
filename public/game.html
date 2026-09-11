@@ -380,13 +380,13 @@
   }
   .reveal-overlay.open .reveal-card{transform:translate(-50%, -50%) scale(1); opacity:1;}
   .reveal-icon{
-    width:clamp(52px, 9vw, 72px); height:clamp(52px, 9vw, 72px);
+    width:clamp(96px, 18vw, 140px);
     margin:0 auto 14px;
-    border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    color:#fff;
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:0 8px 18px rgba(42,32,51,0.28);
   }
-  .reveal-icon svg{width:56%; height:56%;}
+  .reveal-icon img{width:100%; height:auto; display:block;}
   .reveal-tag{
     display:inline-block;
     font-family:'Baloo 2', sans-serif; font-weight:700;
@@ -413,13 +413,13 @@
   .reveal-action:hover{background:#FFC15A;}
   .reveal-action[hidden]{display:none;}
   .reveal-hint{font-size:12px; color:var(--ink-soft); margin-top:10px;}
-  .reveal-icon.type-corner, .reveal-tag.type-corner{background:var(--plum-deep);}
-  .reveal-icon.type-milestone, .reveal-tag.type-milestone{background:var(--teal);}
-  .reveal-icon.type-setback, .reveal-tag.type-setback{background:var(--setback);}
-  .reveal-icon.type-connection, .reveal-tag.type-connection{background:var(--blue);}
-  .reveal-icon.type-collectible, .reveal-tag.type-collectible{background:var(--gold-deep);}
-  .reveal-icon.type-story, .reveal-tag.type-story{background:var(--pink-deep);}
-  .reveal-icon.type-finish, .reveal-tag.type-finish{background:linear-gradient(135deg, var(--gold), var(--gold-deep));}
+  .reveal-tag.type-corner{background:var(--plum-deep);}
+  .reveal-tag.type-milestone{background:var(--teal);}
+  .reveal-tag.type-setback{background:var(--setback);}
+  .reveal-tag.type-connection{background:var(--blue);}
+  .reveal-tag.type-collectible{background:var(--gold-deep);}
+  .reveal-tag.type-story{background:var(--pink-deep);}
+  .reveal-tag.type-finish{background:linear-gradient(135deg, var(--gold), var(--gold-deep));}
 </style>
 </head>
 <body>
@@ -669,15 +669,14 @@
   // Larger versions of the same icon language used elsewhere on this
   // page (e.g. the type-swatch idea from the board's very first pass),
   // sized up for the reveal card's prominent top icon.
-  var TYPE_ICON = {
-    corner: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v18"/><path d="M5 4h13l-2 4 2 4H5"/></svg>',
-    milestone: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.6 6.8L12 16.9 5.8 20.4l1.6-6.8L2.2 9l6.9-.7z"/></svg>',
-    setback: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18L18 6M6 6l12 12"/></svg>',
-    connection: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="12" r="2.3"/><circle cx="17" cy="6" r="2.3"/><circle cx="17" cy="18" r="2.3"/><path d="M9 11l6-4M9 13l6 4"/></svg>',
-    collectible: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="1"/><path d="M4 13h16M12 9v11M8 9c0-2 1.5-4 4-4s4 2 4 4"/></svg>',
-    story: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 9 9 0 0 1-4-.9L3 20l1.1-4a8.4 8.4 0 0 1-1.1-4.5 8.4 8.4 0 0 1 8.9-8.4 8.6 8.6 0 0 1 9.1 8.4z"/></svg>',
-    finish: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v18"/><path d="M6 4h4l1 2h7l-2 4 2 4h-7l-1-2H6"/></svg>'
-  };
+  // Reveal-card icon: the actual square tile artwork, cropped ahead of
+  // time from the board's own strip images (assets/game/icons/square-
+  // N.png, 1-44) — see assets/game/strips/ for the sources. No separate
+  // icon art needed; this is a straight crop of what's already used to
+  // assemble First_Place_Board_Assembly.png.
+  function iconSrcForSquare(n) {
+    return 'assets/game/icons/square-' + n + '.png';
+  }
 
   // Perimeter walk matching the actual board art (First_Place_Board_
   // Assembly.png), measured directly from the image: a precise 12x12
@@ -1044,12 +1043,16 @@
   })();
 
   // ---------- Reveal card: pops up large, centered near the token,
-  // large icon on top, clear copy below. Resolve behavior by type:
-  // milestone/setback/story/corner/finish auto-continue; connection
-  // needs an honor-system "Confirm" (per the design doc's verification
-  // rule); collectible needs a "Reveal" tap. Visual redesign only —
-  // does not change which squares do what, just how landing on one
-  // is shown and (for connection/collectible) confirmed. ----------
+  // with the square's own tile art (cropped from the board's strip
+  // images) large up top and clear copy below. Resolve behavior by
+  // type: only connection needs an explicit tap ("Confirm" — the
+  // honor-system verification the design doc calls for on private
+  // actions like "email 3 friends"). Every other type — milestone,
+  // setback, story, corner, finish, and collectible (shows what Roomie
+  // was found) — auto-dismisses on its own after a short pause, to
+  // keep the game moving. ----------
+  var AUTO_DISMISS_MS = 1700;
+
   function showRevealCard(outcome, characterKey, onDone) {
     var type = outcome.landedType || 'milestone';
     var icon = document.getElementById('reveal-icon');
@@ -1060,8 +1063,7 @@
     var hint = document.getElementById('reveal-hint');
     var overlay = document.getElementById('reveal-overlay');
 
-    icon.className = 'reveal-icon type-' + type;
-    icon.innerHTML = TYPE_ICON[type] || '';
+    icon.innerHTML = '<img src="' + iconSrcForSquare(outcome.landedSquare) + '" alt="">';
     tag.className = 'reveal-tag type-' + type;
     tag.textContent = TYPE_LABEL[type] || '';
     title.textContent = outcome.landedLabel || ('Square ' + outcome.landedSquare);
@@ -1082,17 +1084,12 @@
       action.textContent = 'Confirm';
       hint.hidden = true;
       action.onclick = closeAndDone;
-    } else if (type === 'collectible') {
-      action.hidden = false;
-      action.textContent = 'Reveal';
-      hint.hidden = true;
-      action.onclick = closeAndDone;
     } else {
       action.hidden = true;
       action.onclick = null;
       hint.hidden = false;
       hint.textContent = 'Continuing…';
-      window.setTimeout(closeAndDone, 1800);
+      window.setTimeout(closeAndDone, AUTO_DISMISS_MS);
     }
 
     overlay.classList.add('open');
