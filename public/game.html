@@ -95,6 +95,20 @@
   .char-name{font-family:'Baloo 2', sans-serif; font-weight:700; font-size:16px; color:var(--plum); margin-bottom:6px;}
   .char-dream{font-size:12.5px; color:var(--ink-soft); line-height:1.4;}
 
+  /* Board shown small behind the character cards, present from the very
+     first screen but not competing with selection for attention. */
+  .select-stage{position:relative;}
+  .select-board-bg{
+    position:absolute;
+    top:50%; left:50%; transform:translate(-50%, -50%);
+    width:60%; max-width:480px;
+    opacity:0.32;
+    border-radius:16px;
+    z-index:0;
+    pointer-events:none;
+  }
+  .select-stage .char-grid{position:relative; z-index:1;}
+
   /* EMAIL GATE — same visual/interaction pattern as the shop page's
      unlock section and the homepage door/modal gates. */
   .gate-card{max-width:440px; margin:36px auto 0; text-align:center;}
@@ -150,8 +164,9 @@
     z-index:5;
     pointer-events:none;
     filter:drop-shadow(0 3px 6px rgba(0,0,0,0.35));
-    animation:token-drop 0.5s cubic-bezier(.34,1.56,.64,1);
+    transition:left 0.6s cubic-bezier(.4,0,.2,1), bottom 0.6s cubic-bezier(.4,0,.2,1);
   }
+  .board-token.drop-in{animation:token-drop 0.5s cubic-bezier(.34,1.56,.64,1);}
   @keyframes token-drop{
     0%{transform:translateX(-50%) translateY(-14px) scale(0.6); opacity:0;}
     100%{transform:translateX(-50%) translateY(0) scale(1); opacity:1;}
@@ -163,6 +178,107 @@
   .board-caption button{
     background:none; border:0; color:var(--ink-soft);
     text-decoration:underline; cursor:pointer; font-size:14px; padding:0;
+  }
+
+  /* DICE POPPER — placeholder "Pop-O-Matic" style dice dome, built with
+     plain shapes/CSS until real art exists. Mirrors the token's staging
+     spot on the opposite (left) side of the board's open center area. */
+  .dice-popper{
+    position:absolute;
+    width:15%;
+    z-index:4;
+    transform:translateX(-50%);
+  }
+  .dice-base{
+    position:absolute;
+    left:50%; bottom:-10%; transform:translateX(-50%);
+    width:78%; height:20%;
+    border-radius:50%;
+    background:var(--plum-deep);
+    box-shadow:0 3px 6px rgba(0,0,0,0.25);
+  }
+  .dice-dome{
+    position:relative;
+    display:block;
+    width:100%; aspect-ratio:1;
+    border-radius:50%;
+    border:0; padding:0; cursor:pointer;
+    background:
+      radial-gradient(circle at 32% 24%, rgba(255,255,255,0.95), rgba(255,255,255,0.15) 45%, rgba(190,180,210,0.12) 75%),
+      rgba(255,255,255,0.18);
+    box-shadow:0 6px 16px rgba(42,32,51,0.28), inset 0 -8px 16px rgba(42,32,51,0.12), inset 0 3px 6px rgba(255,255,255,0.6);
+    border:2px solid rgba(255,255,255,0.75);
+  }
+  .dice-dome:hover{filter:brightness(1.05);}
+  .dice-dome:disabled{cursor:default;}
+  .die{
+    position:absolute; top:50%; left:50%;
+    transform:translate(-50%, -50%);
+    width:46%; aspect-ratio:1;
+    background:#fff;
+    border-radius:20%;
+    box-shadow:0 2px 6px rgba(0,0,0,0.3);
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    grid-template-rows:repeat(3, 1fr);
+    grid-template-areas:
+      "tl tc tr"
+      "ml mc mr"
+      "bl bc br";
+    padding:14%;
+    gap:6%;
+  }
+  .die.rolling{animation:die-tumble 0.75s ease-in-out infinite;}
+  @keyframes die-tumble{
+    0%{transform:translate(-50%,-50%) rotate(0deg) scale(1);}
+    25%{transform:translate(-58%,-58%) rotate(90deg) scale(0.92);}
+    50%{transform:translate(-42%,-55%) rotate(180deg) scale(1.05);}
+    75%{transform:translate(-55%,-42%) rotate(270deg) scale(0.92);}
+    100%{transform:translate(-50%,-50%) rotate(360deg) scale(1);}
+  }
+  .pip{
+    border-radius:50%;
+    background:var(--ink);
+    justify-self:center; align-self:center;
+    width:100%; height:100%;
+    opacity:0;
+  }
+  .pip.visible{opacity:1;}
+  .pip.tl{grid-area:tl;} .pip.tc{grid-area:tc;} .pip.tr{grid-area:tr;}
+  .pip.ml{grid-area:ml;} .pip.mc{grid-area:mc;} .pip.mr{grid-area:mr;}
+  .pip.bl{grid-area:bl;} .pip.bc{grid-area:bc;} .pip.br{grid-area:br;}
+  .click-callout{
+    position:absolute;
+    left:50%; top:-38%; transform:translateX(-50%);
+    background:var(--gold); color:var(--plum);
+    font-family:'Baloo 2', sans-serif; font-weight:800;
+    font-size:clamp(9px, 1.5vw, 12px); letter-spacing:0.03em;
+    padding:5px 12px; border-radius:999px;
+    white-space:nowrap;
+    box-shadow:0 3px 8px rgba(0,0,0,0.22);
+    animation:callout-bounce 1.4s ease-in-out infinite;
+    transition:opacity 0.3s ease;
+  }
+  .click-callout::after{
+    content:''; position:absolute; left:50%; bottom:-6px; transform:translateX(-50%);
+    border-left:6px solid transparent; border-right:6px solid transparent; border-top:6px solid var(--gold);
+  }
+  .click-callout.hide{opacity:0; pointer-events:none;}
+  @keyframes callout-bounce{
+    0%, 100%{transform:translateX(-50%) translateY(0);}
+    50%{transform:translateX(-50%) translateY(-4px);}
+  }
+
+  .roll-result{
+    text-align:center; margin-top:18px;
+    max-width:480px; margin-left:auto; margin-right:auto;
+    font-size:14.5px; font-weight:600; color:var(--plum);
+    background:var(--paper-2); border:1px solid var(--line);
+    border-radius:12px; padding:12px 18px;
+  }
+  .pacing-note{
+    text-align:center; margin-top:10px;
+    font-size:13px; font-weight:600; color:var(--gold-deep);
   }
 </style>
 </head>
@@ -182,34 +298,37 @@
   <section id="screen-select" class="game-screen">
     <h1 class="game-title">Choose Your Character</h1>
     <p class="game-sub">Pick who you're playing as — you'll follow their path to the dream.</p>
-    <div class="char-grid">
-      <button type="button" class="char-card" data-character="fran">
-        <img src="assets/game/Fran-playing-piece.png" alt="Fran">
-        <span class="char-name">Fran</span>
-        <span class="char-dream">Record a bubblegum rap album — music video included.</span>
-      </button>
-      <button type="button" class="char-card" data-character="jeremy">
-        <img src="assets/game/Jeremy-playing-piece.png" alt="Jeremy">
-        <span class="char-name">Jeremy</span>
-        <span class="char-dream">A ride-along with the cops of Cops.</span>
-      </button>
-      <button type="button" class="char-card" data-character="will">
-        <img src="assets/game/Will-playing-piece.png" alt="Will">
-        <span class="char-name">Will</span>
-        <span class="char-dream">Write for Star Wars — even the fan fiction legends.</span>
-      </button>
-      <button type="button" class="char-card" data-character="martha">
-        <img src="assets/game/Martha-playing-piece.png" alt="Martha">
-        <span class="char-name">Martha</span>
-        <span class="char-dream">A speaking tour across the US.</span>
-      </button>
+    <div class="select-stage">
+      <img class="select-board-bg" src="assets/game/First_Place_Board_Assembly.png" alt="">
+      <div class="char-grid">
+        <button type="button" class="char-card" data-character="fran">
+          <img src="assets/game/Fran-playing-piece.png" alt="Fran">
+          <span class="char-name">Fran</span>
+          <span class="char-dream">Record a bubblegum rap album — music video included.</span>
+        </button>
+        <button type="button" class="char-card" data-character="jeremy">
+          <img src="assets/game/Jeremy-playing-piece.png" alt="Jeremy">
+          <span class="char-name">Jeremy</span>
+          <span class="char-dream">A ride-along with the cops of Cops.</span>
+        </button>
+        <button type="button" class="char-card" data-character="will">
+          <img src="assets/game/Will-playing-piece.png" alt="Will">
+          <span class="char-name">Will</span>
+          <span class="char-dream">Write for Star Wars — even the fan fiction legends.</span>
+        </button>
+        <button type="button" class="char-card" data-character="martha">
+          <img src="assets/game/Martha-playing-piece.png" alt="Martha">
+          <span class="char-name">Martha</span>
+          <span class="char-dream">A speaking tour across the US.</span>
+        </button>
+      </div>
     </div>
   </section>
 
   <!-- SCREEN 2: EMAIL GATE -->
   <section id="screen-gate" class="game-screen" hidden>
     <h1 class="game-title">Almost there</h1>
-    <p class="game-sub">Enter your email to unlock the board.</p>
+    <p class="game-sub" id="gate-sub">Enter your email to unlock the board.</p>
     <div class="gate-card">
       <div class="gate-picked" id="gate-picked"></div>
       <form class="gate-form" id="gate-form" method="post" action="https://app.kit.com/forms/9874369/subscriptions" novalidate>
@@ -221,16 +340,37 @@
     </div>
   </section>
 
-  <!-- SCREEN 3: BOARD (static render — no movement yet) -->
+  <!-- SCREEN 3: BOARD — staging (pick up the die, roll, then the email
+       gate) followed by the opening move once confirmed. -->
   <section id="screen-board" class="game-screen" hidden>
     <h1 class="game-title" id="board-title">The Board</h1>
-    <p class="game-sub">44 squares from Moving Day to the Dream, Realized.</p>
+    <p class="game-sub" id="board-sub">44 squares from Moving Day to the Dream, Realized.</p>
 
     <div class="board-frame" id="board-frame">
       <img class="board-image" src="assets/game/First_Place_Board_Assembly.png" alt="The First Place board — 44 squares from Moving Day to the Dream, Realized.">
       <img class="board-token" id="board-token" src="" alt="">
+
+      <!--
+        DICE POPPER PLACEHOLDER: plain shapes/CSS standing in for real
+        "Pop-O-Matic" style dome art (like the popper in Trouble). Swap
+        .dice-base/.dice-dome's CSS shapes for real art later — the
+        click handler and roll logic don't need to change.
+      -->
+      <div class="dice-popper" id="dice-popper" hidden>
+        <div class="click-callout" id="click-callout">CLICK ME</div>
+        <div class="dice-base"></div>
+        <button type="button" class="dice-dome" id="dice-dome" aria-label="Roll the die">
+          <div class="die" id="die">
+            <span class="pip tl"></span><span class="pip tc"></span><span class="pip tr"></span>
+            <span class="pip ml"></span><span class="pip mc"></span><span class="pip mr"></span>
+            <span class="pip bl"></span><span class="pip bc"></span><span class="pip br"></span>
+          </div>
+        </button>
+      </div>
     </div>
 
+    <p class="roll-result" id="roll-result" hidden></p>
+    <p class="pacing-note" id="pacing-note" hidden></p>
     <p class="board-caption"><button type="button" id="change-character">Change character</button></p>
   </section>
 
@@ -246,6 +386,88 @@
     will:   { name: 'Will',   token: 'assets/game/Will-playing-piece.png' },
     martha: { name: 'Martha', token: 'assets/game/Martha-playing-piece.png' }
   };
+
+  // Full 44-square board, transcribed from first-place-board-game-
+  // design.md. Kept here purely as data (not rendered — the board image
+  // already shows the art) so landing effects can be resolved: "Advance
+  // N" / "Move back N" / "Lose a turn". Story-beat squares carry
+  // per-character text; no numeric effect on them per the design doc
+  // ("pure narrative momentum").
+  var BOARD_SQUARES = [
+    { n: 1, label: 'START', text: 'Boxes everywhere, keys in hand. The journey begins.' },
+    { n: 2, text: 'Job interview — nailed it. Advance 2.' },
+    { n: 3, text: 'Lost your keys already. Lose a turn.' },
+    { n: 4, text: 'Email 3 friends about First Place. Advance 3.' },
+    { n: 5, text: 'Find a Roomie!' },
+    { n: 6, text: 'Roommate ate your leftovers. Move back 1.' },
+    { n: 7, text: 'Learned to do laundry without shrinking everything. Advance 2.' },
+    { n: 8, text: { fran: 'Studio time booked!', jeremy: "Got the dispatcher's number.", will: 'Email back from a Lucasfilm assistant.', martha: 'First venue says yes.' } },
+    { n: 9, text: 'Missed the bus. Move back 2.' },
+    { n: 10, text: 'Made a new friend at the coffee shop. Advance 2.' },
+    { n: 11, text: 'Share your board on social. Advance 3.' },
+    { n: 12, label: 'CHECKPOINT', text: "The apartment's starting to feel like home." },
+    { n: 13, text: 'Lost the scissors. Again. Lose a turn.' },
+    { n: 14, text: 'First paycheck. Advance 2.' },
+    { n: 15, text: 'Find a Roomie!' },
+    { n: 16, text: 'Invite someone to pick their character. Advance 3.' },
+    { n: 17, text: 'Wi-Fi went out mid-episode. Move back 1.' },
+    { n: 18, text: 'Fixed something broken all by yourself. Advance 2.' },
+    { n: 19, text: { fran: 'Found the right beat.', jeremy: 'Ride-along date confirmed.', will: "Invited into the writers' room chat.", martha: 'Second city added to the tour.' } },
+    { n: 20, text: 'Got a little lost walking home. Move back 2.' },
+    { n: 21, text: 'Aced your budget this month. Advance 2.' },
+    { n: 22, text: "Tag a friend who'd love this show. Advance 3." },
+    { n: 23, label: 'ROOMIE GATE', text: "Need at least 2 Roomies collected to pass. Don't have them? Head back and keep looking." },
+    { n: 24, text: "Learned to cook something that wasn't cereal. Advance 2." },
+    { n: 25, text: 'Spilled coffee on your only clean shirt. Move back 1.' },
+    { n: 26, text: 'Find a Roomie!' },
+    { n: 27, text: 'Leave a comment/review somewhere. Advance 3.' },
+    { n: 28, text: "Alarm didn't go off. Move back 2." },
+    { n: 29, text: 'Got a compliment from your boss. Advance 2.' },
+    { n: 30, text: { fran: 'Recorded the hook.', jeremy: 'Vest fitted, radio clipped on.', will: 'First pages sent for notes.', martha: 'Ticket sales open.' } },
+    { n: 31, text: 'Tripped in front of the cute neighbor. Lose a turn.' },
+    { n: 32, text: 'Walked to the store alone, no big deal. Advance 2.' },
+    { n: 33, text: 'Recommend the show to a coworker. Advance 3.' },
+    { n: 34, label: 'FINAL STRETCH', text: "The dream's almost in reach." },
+    { n: 35, text: 'Found your favorite coffee shop. Advance 2.' },
+    { n: 36, text: 'Forgot your umbrella. Move back 1.' },
+    { n: 37, text: 'Find a Roomie!' },
+    { n: 38, text: 'Text a friend "guess what I\'m doing." Advance 3.' },
+    { n: 39, text: 'Roommate drama, round 2. Move back 2.' },
+    { n: 40, text: 'Hit a personal goal you set for yourself. Advance 2.' },
+    { n: 41, text: { fran: 'The beat drops.', jeremy: 'Radio call comes in — go time.', will: 'The whiteboard fills up.', martha: 'The arena lights come up.' } },
+    { n: 42, text: 'One more thing goes wrong, because life. Lose a turn.' },
+    { n: 43, text: 'Share your board one more time. Advance 3.' },
+    { n: 44, label: 'FINISH', text: 'The Dream, Realized.' }
+  ];
+  var BOARD_BY_N = {};
+  BOARD_SQUARES.forEach(function (sq) { BOARD_BY_N[sq.n] = sq; });
+
+  function squareText(sq, characterKey) {
+    return typeof sq.text === 'object' ? sq.text[characterKey] : sq.text;
+  }
+
+  // "Only the square you land on via your move/spin triggers its effect.
+  // If that effect moves your token again... the destination square's
+  // own effect does NOT re-trigger" — first-place-board-game-design.md.
+  //
+  // Deliberately NOT yet implemented (both require systems that don't
+  // exist yet and are still explicitly deferred to follow-up prompts):
+  // - Collectible squares ("Find a Roomie!") don't award anything —
+  //   there's no Roomie inventory yet.
+  // - The Roomie Gate (Square 23) doesn't check/enforce the "need 2
+  //   Roomies to pass" rule — enforcing it now, with no way to ever
+  //   collect one, would permanently soft-lock the board.
+  function resolveLanding(square, characterKey) {
+    var sq = BOARD_BY_N[square];
+    var text = sq ? (squareText(sq, characterKey) || '') : '';
+    var loseTurn = /Lose a turn/i.test(text);
+    var advanceMatch = /Advance (\d+)/.exec(text);
+    var backMatch = /Move back (\d+)/.exec(text);
+    var finalSquare = square;
+    if (advanceMatch) finalSquare = Math.min(44, square + parseInt(advanceMatch[1], 10));
+    else if (backMatch) finalSquare = Math.max(1, square - parseInt(backMatch[1], 10));
+    return { landedSquare: square, finalSquare: finalSquare, loseTurn: loseTurn, landedText: text };
+  }
 
   // Perimeter walk matching the actual board art (First_Place_Board_
   // Assembly.png), measured directly from the image: a precise 12x12
@@ -263,11 +485,26 @@
 
   var CELL_PCT = 100 / 12;
 
+  // Staging spot (right of the logo art) and the dice popper's spot
+  // (mirrored, left of the logo art), both in the board's open center.
+  var STAGE_POS = { left: 74, bottom: 56 };
+  var DICE_POS = { left: 26, bottom: 54 };
+
+  function placeTokenAt(leftPct, bottomPct) {
+    var token = document.getElementById('board-token');
+    token.style.left = leftPct + '%';
+    token.style.bottom = bottomPct + '%';
+  }
+
   function placeToken(n) {
     var pos = squarePosition(n);
-    var token = document.getElementById('board-token');
-    token.style.left = ((pos.col - 1 + 0.5) * CELL_PCT) + '%';
-    token.style.bottom = (100 - pos.row * CELL_PCT) + '%';
+    placeTokenAt((pos.col - 1 + 0.5) * CELL_PCT, 100 - pos.row * CELL_PCT);
+  }
+
+  function positionDicePopper() {
+    var popper = document.getElementById('dice-popper');
+    popper.style.left = DICE_POS.left + '%';
+    popper.style.bottom = DICE_POS.bottom + '%';
   }
 
   var screens = {
@@ -286,26 +523,156 @@
     return CHARACTERS[key] ? key : null;
   }
 
+  function resetGameProgress() {
+    localStorage.removeItem('gameCharacter');
+    localStorage.removeItem('gameSquare');
+    localStorage.removeItem('pendingRoll');
+    localStorage.removeItem('gameLoseTurn');
+  }
+
   // ---------- Screen 1: character select ----------
   document.querySelectorAll('.char-card').forEach(function (card) {
     card.addEventListener('click', function () {
-      localStorage.setItem('gameCharacter', card.getAttribute('data-character'));
-      proceedAfterCharacter();
+      var key = card.getAttribute('data-character');
+      localStorage.setItem('gameCharacter', key);
+      localStorage.removeItem('gameSquare');
+      localStorage.removeItem('pendingRoll');
+      localStorage.removeItem('gameLoseTurn');
+      enterStaging();
     });
   });
 
-  function proceedAfterCharacter() {
-    if (localStorage.getItem('hasEnteredEmail') === 'true') {
-      renderBoard();
-      showScreen('board');
-    } else {
-      renderGatePicked();
-      showScreen('gate');
+  // ---------- Screen 3 (part 1): staging — token parked center-right,
+  // dice popper center-left, waiting for a roll ----------
+  function enterStaging() {
+    var key = getCharacterKey();
+    var c = CHARACTERS[key];
+
+    document.getElementById('board-title').textContent = 'Roll to Begin';
+    document.getElementById('board-sub').textContent = "Tap the die to see how far " + c.name + ' starts.';
+
+    var token = document.getElementById('board-token');
+    token.src = c.token;
+    token.alt = c.name + "'s token";
+    token.classList.remove('drop-in');
+    placeTokenAt(STAGE_POS.left, STAGE_POS.bottom);
+    void token.offsetWidth; // restart the drop-in animation on repeat visits
+    token.classList.add('drop-in');
+
+    positionDicePopper();
+    document.getElementById('dice-popper').hidden = false;
+    document.getElementById('dice-dome').disabled = false;
+    document.getElementById('click-callout').classList.remove('hide');
+    setDieFace(1);
+    document.getElementById('roll-result').hidden = true;
+
+    showScreen('board');
+  }
+
+  // ---------- Dice popper ----------
+  var DIE_FACES = {
+    1: ['mc'],
+    2: ['tl', 'br'],
+    3: ['tl', 'mc', 'br'],
+    4: ['tl', 'tr', 'bl', 'br'],
+    5: ['tl', 'tr', 'mc', 'bl', 'br'],
+    6: ['tl', 'tr', 'ml', 'mr', 'bl', 'br']
+  };
+  var PIP_CLASSES = ['tl', 'tc', 'tr', 'ml', 'mc', 'mr', 'bl', 'bc', 'br'];
+
+  function setDieFace(n) {
+    var die = document.getElementById('die');
+    var on = DIE_FACES[n] || [];
+    PIP_CLASSES.forEach(function (cls) {
+      die.querySelector('.pip.' + cls).classList.toggle('visible', on.indexOf(cls) !== -1);
+    });
+  }
+
+  // Pacing is deliberately a soft nudge, not a hard cap — the design doc
+  // says "a few moves per visit... fine if someone finishes in one
+  // sitting," so rolling is never actually blocked, just gently flagged
+  // once someone's put in a solid session.
+  var PACING_NUDGE_THRESHOLD = 6;
+
+  function recordRollForPacing() {
+    var today = new Date().toISOString().slice(0, 10);
+    var count = parseInt(localStorage.getItem('gameRollsToday') || '0', 10);
+    if (localStorage.getItem('gameRollDate') !== today) {
+      count = 0;
+      localStorage.setItem('gameRollDate', today);
+    }
+    count += 1;
+    localStorage.setItem('gameRollsToday', String(count));
+    return count;
+  }
+
+  function showPacingNoticeIfNeeded() {
+    var count = parseInt(localStorage.getItem('gameRollsToday') || '0', 10);
+    var note = document.getElementById('pacing-note');
+    if (count === PACING_NUDGE_THRESHOLD) {
+      note.textContent = "You've made " + count + ' moves today — keep going, or come back tomorrow for more!';
+      note.hidden = false;
     }
   }
 
+  // The die is a persistent control, not a one-time intro piece: the
+  // very first roll (pre-gate) goes through onRollComplete(); every
+  // roll after that (once gameSquare exists) is a normal turn handled
+  // by rollForTurn() — same popper, same animation, no gate involved.
+  document.getElementById('dice-dome').addEventListener('click', function () {
+    var dome = this;
+    if (dome.disabled) return;
+    dome.disabled = true;
+    document.getElementById('click-callout').classList.add('hide');
+    document.getElementById('pacing-note').hidden = true;
+
+    var die = document.getElementById('die');
+    die.classList.add('rolling');
+
+    var ticks = 0;
+    var maxTicks = 9;
+    var tickInterval = setInterval(function () {
+      setDieFace(1 + Math.floor(Math.random() * 6));
+      ticks++;
+      if (ticks >= maxTicks) {
+        clearInterval(tickInterval);
+        var result = 1 + Math.floor(Math.random() * 6);
+        setDieFace(result);
+        die.classList.remove('rolling');
+        if (localStorage.getItem('gameSquare')) {
+          rollForTurn(result);
+        } else {
+          onRollComplete(result);
+        }
+      }
+    }, 90);
+  });
+
+  function onRollComplete(result) {
+    recordRollForPacing();
+    localStorage.setItem('pendingRoll', String(result));
+
+    var resultEl = document.getElementById('roll-result');
+    resultEl.textContent = 'You rolled a ' + result + '!';
+    resultEl.hidden = false;
+
+    window.setTimeout(function () {
+      if (localStorage.getItem('hasEnteredEmail') === 'true') {
+        completeOpeningMove();
+      } else {
+        var key = getCharacterKey();
+        var c = CHARACTERS[key];
+        document.getElementById('gate-sub').textContent =
+          'Enter your email to move ' + c.name + ' through the game.';
+        renderGatePicked();
+        showScreen('gate');
+      }
+    }, 900);
+  }
+
   // ---------- Screen 2: email gate (reuses the site's existing
-  // confirmed-subscriber check + Kit double opt-in flow) ----------
+  // confirmed-subscriber check + Kit double opt-in flow), now shown
+  // AFTER the pre-game roll rather than before it ----------
   function renderGatePicked() {
     var key = getCharacterKey();
     var el = document.getElementById('gate-picked');
@@ -315,6 +682,7 @@
   }
 
   document.getElementById('gate-back').addEventListener('click', function () {
+    resetGameProgress();
     showScreen('select');
   });
 
@@ -344,7 +712,8 @@
       submitBtn.textContent = 'Checking…';
 
       // Same fast path as the homepage/shop gates: an already-confirmed
-      // Kit subscriber skips straight through, no email needed.
+      // Kit subscriber skips straight through, no email needed — the
+      // roll we already have just counts immediately.
       fetch('/api/check-subscriber', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -355,8 +724,7 @@
         .then(function (data) {
           if (data && data.confirmed) {
             localStorage.setItem('hasEnteredEmail', 'true');
-            renderBoard();
-            showScreen('board');
+            completeOpeningMove();
             return;
           }
 
@@ -365,7 +733,8 @@
 
           // So confirmed.html knows to bounce back here (instead of its
           // shop.html default) once this visitor clicks the confirmation
-          // link in Kit's email.
+          // link in Kit's email. pendingRoll is already in localStorage,
+          // so the roll survives that round trip and still counts.
           localStorage.setItem('pendingGateReturn', 'game.html');
 
           return fetch(form.action, {
@@ -391,34 +760,161 @@
     });
   })();
 
-  // ---------- Screen 3: static board render ----------
-  function renderBoard() {
-    var key = getCharacterKey() || 'fran';
+  // ---------- Screen 3 (part 2): the roll counts — animate staging ->
+  // Square 1 -> rolled square -> (if that square's own effect moves the
+  // token again) its resolved final square, without re-triggering that
+  // final square's own effect ----------
+  function completeOpeningMove() {
+    var key = getCharacterKey();
     var c = CHARACTERS[key];
+    var roll = parseInt(localStorage.getItem('pendingRoll') || '1', 10);
+    var rolledSquare = 1 + roll;
+    var outcome = resolveLanding(rolledSquare, key);
 
     document.getElementById('board-title').textContent = 'The Board — Playing as ' + c.name;
+    document.getElementById('board-sub').textContent = "You're on your way!";
+    document.getElementById('roll-result').hidden = true;
+    document.getElementById('click-callout').classList.add('hide');
 
     var token = document.getElementById('board-token');
     token.src = c.token;
     token.alt = c.name + "'s token";
-    placeToken(1);
+    token.classList.remove('drop-in');
+    placeTokenAt(STAGE_POS.left, STAGE_POS.bottom);
+
+    // The dice popper stays put and active — it's the same control used
+    // for every future turn, not a one-time intro piece.
+    positionDicePopper();
+    document.getElementById('dice-popper').hidden = false;
+
+    showScreen('board');
+
+    var t = 250;
+    window.setTimeout(function () { placeToken(1); }, t);                 // staging -> Square 1
+    t += 700;
+    window.setTimeout(function () { placeToken(rolledSquare); }, t);      // the roll itself
+    if (outcome.finalSquare !== rolledSquare) {
+      t += 900;
+      window.setTimeout(function () { placeToken(outcome.finalSquare); }, t); // that square's own effect firing
+    }
+    t += 700;
+    window.setTimeout(function () {
+      localStorage.setItem('gameSquare', String(outcome.finalSquare));
+      if (outcome.loseTurn) localStorage.setItem('gameLoseTurn', 'true');
+      localStorage.removeItem('pendingRoll');
+      document.getElementById('board-sub').textContent = 'Square ' + outcome.finalSquare + ' of 44.';
+      showLandingSummary(outcome, key);
+      showPacingNoticeIfNeeded();
+      document.getElementById('dice-dome').disabled = (outcome.finalSquare >= 44);
+    }, t);
+  }
+
+  // ---------- A normal turn, once the player already has a board
+  // position: click the same popper, roll, advance from wherever they
+  // currently are, resolve that landing square's effect. No gate. ----------
+  function rollForTurn(roll) {
+    var key = getCharacterKey();
+    var from = parseInt(localStorage.getItem('gameSquare') || '1', 10);
+
+    if (from >= 44) {
+      var doneEl = document.getElementById('roll-result');
+      doneEl.textContent = "You've already reached the Dream, Realized!";
+      doneEl.hidden = false;
+      document.getElementById('dice-dome').disabled = true;
+      return;
+    }
+
+    recordRollForPacing();
+
+    var landedSquare = Math.min(44, from + roll); // cap at Finish, never overshoot
+    var outcome = resolveLanding(landedSquare, key);
+
+    document.getElementById('roll-result').hidden = true;
+
+    var t = 150;
+    window.setTimeout(function () { placeToken(landedSquare); }, t);
+    if (outcome.finalSquare !== landedSquare) {
+      t += 900;
+      window.setTimeout(function () { placeToken(outcome.finalSquare); }, t);
+    }
+    t += 700;
+    window.setTimeout(function () {
+      localStorage.setItem('gameSquare', String(outcome.finalSquare));
+      if (outcome.loseTurn) localStorage.setItem('gameLoseTurn', 'true');
+      document.getElementById('board-sub').textContent = 'Square ' + outcome.finalSquare + ' of 44.';
+      showLandingSummary(outcome, key);
+      showPacingNoticeIfNeeded();
+      document.getElementById('dice-dome').disabled = (outcome.finalSquare >= 44);
+    }, t);
+  }
+
+  function showLandingSummary(outcome, characterKey) {
+    var landedSq = BOARD_BY_N[outcome.landedSquare];
+    var pieces = [];
+    pieces.push('Landed on Square ' + outcome.landedSquare +
+      (landedSq && landedSq.label ? ' (' + landedSq.label + ')' : '') + '.');
+    if (outcome.landedText) pieces.push(outcome.landedText);
+    if (outcome.finalSquare !== outcome.landedSquare) {
+      pieces.push('Now on Square ' + outcome.finalSquare + '.');
+    }
+    if (outcome.loseTurn) pieces.push('(Lose a turn — turn-taking is coming in a future update.)');
+
+    var resultEl = document.getElementById('roll-result');
+    resultEl.textContent = pieces.join(' ');
+    resultEl.hidden = false;
+  }
+
+  // ---------- Settled board view (returning to /game after at least
+  // one move) — token at their current square, dice popper active and
+  // ready for their next turn. ----------
+  function renderSettledBoard(squareNum) {
+    var key = getCharacterKey();
+    var c = CHARACTERS[key];
+
+    document.getElementById('board-title').textContent = 'The Board — Playing as ' + c.name;
+    document.getElementById('board-sub').textContent = 'Square ' + squareNum + ' of 44.';
+    document.getElementById('roll-result').hidden = true;
+    document.getElementById('pacing-note').hidden = true;
+
+    var token = document.getElementById('board-token');
+    token.src = c.token;
+    token.alt = c.name + "'s token";
+    token.classList.remove('drop-in');
+    placeToken(squareNum);
+    void token.offsetWidth;
+    token.classList.add('drop-in');
+
+    positionDicePopper();
+    document.getElementById('dice-popper').hidden = false;
+    document.getElementById('dice-dome').disabled = (squareNum >= 44);
+    document.getElementById('click-callout').classList.add('hide'); // already introduced once
+    setDieFace(1);
+
+    showScreen('board');
   }
 
   document.getElementById('change-character').addEventListener('click', function () {
-    localStorage.removeItem('gameCharacter');
+    resetGameProgress();
     showScreen('select');
   });
 
   // ---------- Initial screen on load ----------
   var storedCharacter = getCharacterKey();
+  var storedSquare = localStorage.getItem('gameSquare');
+  var storedPendingRoll = localStorage.getItem('pendingRoll');
+  var confirmed = localStorage.getItem('hasEnteredEmail') === 'true';
+
   if (!storedCharacter) {
     showScreen('select');
-  } else if (localStorage.getItem('hasEnteredEmail') === 'true') {
-    renderBoard();
-    showScreen('board');
+  } else if (storedSquare) {
+    renderSettledBoard(parseInt(storedSquare, 10));
+  } else if (storedPendingRoll && confirmed) {
+    // Rolled already, then confirmed (via Kit's email round trip, or
+    // was already confirmed elsewhere) — finish the move that was
+    // waiting on the gate.
+    completeOpeningMove();
   } else {
-    renderGatePicked();
-    showScreen('gate');
+    enterStaging();
   }
 })();
 </script>
