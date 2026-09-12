@@ -329,18 +329,21 @@
     display:block;
     pointer-events:none;
   }
+  /* Every slot always shows exactly ONE image — never both layered —
+     so there's no shadow/silhouette showing through under a collected
+     Roomie's own art. Not-yet-collected slots show a same-position
+     crop straight from the shelf art's own silhouette version
+     (silhouette-NN.png), sized to the full cell so it reads as baked
+     into the shelf, not a floating sticker; collected slots swap in
+     the small centered full-color item (roomie-NN.png) instead. JS
+     sets left/top/width/height per state — see updateRoomieWallSlots(). */
   .roomie-slot-img{
     position:absolute;
-    width:16%;
-    transform:translate(-50%, -50%) scale(0.5);
-    opacity:0;
     pointer-events:none;
-    filter:drop-shadow(0 2px 3px rgba(42,32,51,0.35));
-    transition:opacity 0.35s ease, transform 0.4s cubic-bezier(.34,1.56,.64,1);
   }
   .roomie-slot-img.collected{
-    opacity:1;
-    transform:translate(-50%, -50%) scale(1);
+    transform:translate(-50%, -50%);
+    filter:drop-shadow(0 2px 3px rgba(42,32,51,0.35));
   }
 
   /* REVEAL CARD — pops up large and centered on the board, positioned
@@ -589,6 +592,14 @@
   .doubt-response[hidden]{display:none;}
   .doubt-response.open{opacity:1; transform:translate(-50%, -50%) scale(1); pointer-events:auto;}
   .doubt-response:hover{background:#F5F0FA;}
+  /* Same bounce-plus-glow visual language as .click-callout / .dice-
+     dome.prompt — added once the button has already popped in (after
+     its own delay), to draw the eye back to it. */
+  .doubt-response.pulse{animation:doubt-response-pulse 1.4s ease-in-out infinite;}
+  @keyframes doubt-response-pulse{
+    0%, 100%{transform:translate(-50%, -50%) translateY(0); box-shadow:0 10px 22px rgba(42,32,51,0.32), 0 0 0 rgba(255,199,74,0);}
+    50%{transform:translate(-50%, -50%) translateY(-4px); box-shadow:0 10px 22px rgba(42,32,51,0.32), 0 0 18px 6px rgba(255,199,74,0.55);}
+  }
 
   /* CHARACTER SELECT headline — bolder and darker than the default
      .game-sub (which stays soft/muted for the gate and board screens). */
@@ -770,11 +781,12 @@
         Covers the mug-and-keys illustration baked into the board image
         once the first roll happens; the logo/tagline above are higher
         up in the image and untouched. The shelf art (shelf-blank.png)
-        has NO baked-in silhouettes — empty cubbies stay genuinely
-        empty, and a collected Roomie's own full-color image is the
-        only thing ever drawn into its slot, with nothing underneath
-        to muddy it. Slot order is the same 1-16 as ROOMIE_POOL
-        (row-major, 4x4).
+        has NO baked-in silhouettes at all — JS draws exactly ONE image
+        into each of the 16 slots (never both stacked): a collected
+        Roomie's own full-color item, or, cropped from the matching
+        cell of the shelf art's own silhouette version, the shadow shape
+        hinting at what's still missing. Slot order is the same 1-16 as
+        ROOMIE_POOL (row-major, 4x4).
       -->
       <div class="roomie-wall" id="roomie-wall" hidden>
         <div class="roomie-wall-title">Roomie Wall <span>— collect them all</span></div>
@@ -1797,6 +1809,12 @@
     return idx;
   }
 
+  // The insult lands alone first; the comeback only shows up after a
+  // beat, then pulses to draw the eye back to it — a little more true
+  // to how a comeback actually lands than an instant, equally-weighted
+  // reply would feel.
+  var DOUBT_RESPONSE_DELAY_MS = 1300;
+
   function showDoubtVoice(doubtSquare, playerSquare, onDone) {
     var idx = nextDoubtLineIndex();
     var voice = document.getElementById('doubt-voice');
@@ -1810,16 +1828,23 @@
 
     response.textContent = DOUBT_RESPONSES[idx];
     positionFloatingAboveSquare(response, playerSquare, 9);
-    response.hidden = false;
-    void response.offsetWidth;
-    response.classList.add('open');
+    response.hidden = true;
+    response.classList.remove('open', 'pulse');
 
     var closed = false;
+    var revealTimer = window.setTimeout(function () {
+      response.hidden = false;
+      void response.offsetWidth;
+      response.classList.add('open');
+      response.classList.add('pulse');
+    }, DOUBT_RESPONSE_DELAY_MS);
+
     response.onclick = function () {
       if (closed) return;
       closed = true;
+      window.clearTimeout(revealTimer);
       voice.classList.remove('open');
-      response.classList.remove('open');
+      response.classList.remove('open', 'pulse');
       window.setTimeout(function () {
         voice.hidden = true;
         response.hidden = true;
@@ -2034,13 +2059,19 @@
 
   // ---------- Roomie Wall — visual home for the Roomie collection
   // system. Appears once the first roll happens, replacing the mug-
-  // and-keys art baked into the board image at that spot. The shelf art
-  // already has all 16 item silhouettes drawn in as empty placeholders;
-  // this just lays each collected Roomie's own image over its matching
-  // slot (row-major 4x4, same order as ROOMIE_POOL — see the grid this
-  // was measured against). ----------
+  // and-keys art baked into the board image at that spot. shelf-blank.
+  // png is the true base layer — no silhouettes baked in at all — so
+  // every one of the 16 slots is built entirely by JS, showing EXACTLY
+  // ONE of two images, never both stacked (that stacking was what
+  // muddied a collected Roomie's colors before): the small centered
+  // full-color item once collected, or — cropped from the exact same
+  // cell position in the shelf art's own silhouette version — the
+  // matching shadow shape while it's still missing. Order is row-major
+  // 4x4, same as ROOMIE_POOL. ----------
   var ROOMIE_GRID = { left: 2.8, right: 97.2, top: 18.5, bottom: 97.5 };
 
+  // Center point for a COLLECTED slot's small item photo (roomie-slot-
+  // img.collected is centered here via its CSS transform).
   function roomieSlotPercent(id) {
     var idx = id - 1;
     var col = idx % 4, row = Math.floor(idx / 4);
@@ -2050,6 +2081,26 @@
       left: ROOMIE_GRID.left + colW * (col + 0.5),
       top: ROOMIE_GRID.top + rowH * (row + 0.5)
     };
+  }
+
+  // Full cell rect for a NOT-YET-collected slot's silhouette crop,
+  // sized/positioned to exactly fill that cubby (top-left anchored, no
+  // centering transform) so it reads as part of the shelf art itself.
+  function roomieCellRect(id) {
+    var idx = id - 1;
+    var col = idx % 4, row = Math.floor(idx / 4);
+    var colW = (ROOMIE_GRID.right - ROOMIE_GRID.left) / 4;
+    var rowH = (ROOMIE_GRID.bottom - ROOMIE_GRID.top) / 4;
+    return {
+      left: ROOMIE_GRID.left + colW * col,
+      top: ROOMIE_GRID.top + rowH * row,
+      width: colW,
+      height: rowH
+    };
+  }
+
+  function roomieIdPad(id) {
+    return (id < 10 ? '0' : '') + id;
   }
 
   function showRoomieWall() {
@@ -2062,14 +2113,9 @@
     var shelf = document.getElementById('roomie-shelf');
     if (shelf.dataset.built === '1') return;
     ROOMIE_POOL.forEach(function (r) {
-      var p = roomieSlotPercent(r.id);
       var img = document.createElement('img');
       img.className = 'roomie-slot-img';
       img.dataset.roomieId = String(r.id);
-      img.src = 'assets/game/roomies/' + r.img;
-      img.alt = r.name;
-      img.style.left = p.left + '%';
-      img.style.top = p.top + '%';
       shelf.appendChild(img);
     });
     shelf.dataset.built = '1';
@@ -2078,11 +2124,33 @@
   // Called both when the wall is (re)shown (so a returning/switched-
   // character player sees their already-collected Roomies right away)
   // and the instant a new one is found, so the shelf fills in live.
+  // Sets src AND position/size every time, since the two states are
+  // genuinely different layouts (small centered photo vs. full-cell
+  // shadow), not just an opacity toggle on the same art.
   function updateRoomieWallSlots() {
     var collected = getCollectedRoomies();
     document.querySelectorAll('.roomie-slot-img').forEach(function (img) {
       var id = parseInt(img.dataset.roomieId, 10);
-      img.classList.toggle('collected', collected.indexOf(id) !== -1);
+      var pool = ROOMIE_POOL.filter(function (r) { return r.id === id; })[0];
+      var isCollected = collected.indexOf(id) !== -1;
+      img.classList.toggle('collected', isCollected);
+      if (isCollected) {
+        img.src = 'assets/game/roomies/' + pool.img;
+        img.alt = pool.name;
+        var center = roomieSlotPercent(id);
+        img.style.left = center.left + '%';
+        img.style.top = center.top + '%';
+        img.style.width = '16%';
+        img.style.height = 'auto';
+      } else {
+        img.src = 'assets/game/roomies/silhouette-' + roomieIdPad(id) + '.png';
+        img.alt = '';
+        var rect = roomieCellRect(id);
+        img.style.left = rect.left + '%';
+        img.style.top = rect.top + '%';
+        img.style.width = rect.width + '%';
+        img.style.height = rect.height + '%';
+      }
     });
   }
 
