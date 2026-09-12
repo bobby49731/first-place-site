@@ -290,28 +290,18 @@
   }
 
   /* ROOMIE WALL — replaces the mug+keys art (baked into the board
-     image) once the first roll happens. Sits in the lower portion of
-     the board's open center, below the logo/tagline. */
+     image) once the first roll happens. Bottom-left of the board's
+     open center, clear of both dice poppers (which sit higher up,
+     bottom:54.5%-71%) with plenty of margin — no separate background
+     bar or title any more, just the shelf art itself sitting directly
+     on the board. */
   .roomie-wall{
     position:absolute;
-    left:11%; right:11%; bottom:8.5%;
-    height:23%;
-    background:var(--paper-2);
-    border:2px solid var(--line);
-    border-radius:12px;
-    padding:clamp(5px, 1vw, 10px) clamp(8px, 1.4vw, 16px);
-    display:flex; flex-direction:column;
+    left:8.5%; bottom:8%;
+    height:34%;
     z-index:3;
   }
   .roomie-wall[hidden]{display:none;}
-  .roomie-wall-title{
-    text-align:center;
-    font-family:'Baloo 2', sans-serif; font-weight:800;
-    font-size:clamp(8px, 1.6vw, 13px); letter-spacing:0.02em;
-    color:var(--plum); text-transform:uppercase;
-    margin-bottom:clamp(3px, 0.8vw, 7px);
-  }
-  .roomie-wall-title span{font-weight:600; color:var(--ink-soft); text-transform:none; letter-spacing:0;}
   /* Shelf art is 1302x1208 — the container locks to that same aspect
      ratio (rather than stretching to fill) so the percentage-based slot
      positions below line up exactly with the silhouettes baked into the
@@ -320,7 +310,6 @@
     position:relative;
     height:100%;
     aspect-ratio:1302/1208;
-    margin:0 auto;
     min-height:0;
   }
   .roomie-shelf-bg{
@@ -830,7 +819,6 @@
         ROOMIE_POOL (row-major, 4x4).
       -->
       <div class="roomie-wall" id="roomie-wall" hidden>
-        <div class="roomie-wall-title">Roomie Wall <span>— collect them all</span></div>
         <div class="roomie-shelf" id="roomie-shelf">
           <img class="roomie-shelf-bg" src="assets/game/roomies/shelf-blank.png" alt="Roomie shelf">
         </div>
