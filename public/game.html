@@ -668,6 +668,35 @@
     0%, 100%{box-shadow:0 6px 16px rgba(42,32,51,0.28), inset 0 -8px 16px rgba(42,32,51,0.12), inset 0 3px 6px rgba(255,255,255,0.6), 0 0 0 rgba(255,199,74,0);}
     50%{box-shadow:0 6px 20px rgba(42,32,51,0.32), inset 0 -8px 16px rgba(42,32,51,0.12), inset 0 3px 6px rgba(255,255,255,0.6), 0 0 22px 7px rgba(255,199,74,0.55);}
   }
+
+  /* DEBUG PANEL — internal testing only, never shown unless the page
+     was unlocked with the right secret key (see the script below).
+     Deliberately plain/utilitarian, not themed to match the rest of
+     the site, so it reads as an obvious dev tool if anyone ever sees
+     it, not a real feature. */
+  .debug-panel{
+    position:fixed; bottom:14px; right:14px; z-index:99999;
+    display:flex; align-items:center; gap:6px;
+    background:#17121D; color:#fff;
+    padding:8px 10px; border-radius:10px;
+    font-family:'Inter', sans-serif; font-size:12px;
+    box-shadow:0 6px 20px rgba(0,0,0,0.4);
+  }
+  .debug-panel[hidden]{display:none;}
+  .debug-panel strong{
+    font-family:'Baloo 2', sans-serif; font-weight:800;
+    letter-spacing:0.04em; color:var(--gold);
+    margin-right:2px;
+  }
+  .debug-panel select, .debug-panel input, .debug-panel button{
+    font-family:inherit; font-size:12px;
+    border-radius:6px; border:1px solid rgba(255,255,255,0.25);
+    background:rgba(255,255,255,0.08); color:#fff;
+    padding:4px 6px;
+  }
+  .debug-panel input[type="number"]{width:44px;}
+  .debug-panel button{cursor:pointer; background:var(--gold); color:var(--plum); border-color:transparent; font-weight:700;}
+  .debug-panel button:hover{background:#FFC15A;}
 </style>
 </head>
 <body>
@@ -873,6 +902,20 @@
     <p class="board-caption"><button type="button" id="change-character">Change character</button></p>
   </section>
 
+</div>
+
+<!--
+  DEBUG PANEL — internal testing only. Stays hidden and completely
+  inert for every normal visitor; only appears if the page was loaded
+  with the correct secret key. See the script below for exactly how.
+-->
+<div class="debug-panel" id="debug-panel" hidden>
+  <strong>DEBUG</strong>
+  <select id="debug-character-select"></select>
+  <button type="button" id="debug-prev" title="Previous square">&larr;</button>
+  <input type="number" id="debug-square-input" min="1" max="44" value="1">
+  <button type="button" id="debug-jump">Go</button>
+  <button type="button" id="debug-next" title="Next square">&rarr;</button>
 </div>
 
 <script>
@@ -2387,6 +2430,162 @@
     showScreen('select');
   });
 
+  // ---------- DEBUG TOOL (internal testing only) ----------
+  // Jump straight to any square's card/effect without rolling, so
+  // every square can be checked by hand instead of relying on random
+  // dice. Never reachable by a normal visitor: completely inert unless
+  // the page is loaded with the exact secret key below as a query
+  // param, and unlocking only persists for the current browser tab
+  // (sessionStorage), never across a new visit.
+  //
+  //   https://watchfirstplace.com/game?debug_square=27&debug_key=<key>
+  //
+  // Optional extras on that same URL:
+  //   &debug_character=jeremy   (defaults to whatever's already set, or fran)
+  //   &debug_doubt_square=20    (test a catch on this one jump only —
+  //                              every other jump keeps The Doubt safely
+  //                              behind so it never interrupts testing)
+  //
+  // Once unlocked, a small panel appears (bottom-right) with a square
+  // number field, Go, and Prev/Next, so the rest of a 1-44 walkthrough
+  // never needs the URL touched again — it stays unlocked for the tab
+  // until it's closed.
+  var DEBUG_KEY = '480a987a2907a28bbd9b82a7a1e88b7f';
+
+  function debugQueryParam(name) {
+    try {
+      return new URLSearchParams(window.location.search).get(name);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function debugIsUnlocked() {
+    if (debugQueryParam('debug_key') === DEBUG_KEY) {
+      try { sessionStorage.setItem('debugUnlocked', 'true'); } catch (e) {}
+      return true;
+    }
+    try {
+      return sessionStorage.getItem('debugUnlocked') === 'true';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  var DEBUG_ACTIVE = debugIsUnlocked();
+  var DEBUG_REQUESTED_SQUARE = null;
+  var DEBUG_REQUESTED_DOUBT_SQUARE = null;
+
+  if (DEBUG_ACTIVE) {
+    var dbgCharParam = debugQueryParam('debug_character');
+    var dbgChar = (dbgCharParam && CHARACTERS[dbgCharParam]) ? dbgCharParam : (getCharacterKey() || 'fran');
+    localStorage.setItem('gameCharacter', dbgChar);
+    localStorage.setItem('hasEnteredEmail', 'true');
+    localStorage.setItem('doubtIntroSeen', 'true');
+    localStorage.setItem('roomieIntroSeen', 'true');
+    localStorage.removeItem('pendingRoll');
+    localStorage.removeItem('pendingDoubtRoll');
+    if (!localStorage.getItem('doubtSquare')) {
+      localStorage.setItem('doubtSquare', '1');
+    }
+
+    var dbgSquareParam = debugQueryParam('debug_square');
+    if (dbgSquareParam) {
+      DEBUG_REQUESTED_SQUARE = Math.max(1, Math.min(44, parseInt(dbgSquareParam, 10) || 1));
+      localStorage.setItem('gameSquare', String(DEBUG_REQUESTED_SQUARE));
+    } else if (!localStorage.getItem('gameSquare')) {
+      localStorage.setItem('gameSquare', '1');
+    }
+
+    var dbgDoubtParam = debugQueryParam('debug_doubt_square');
+    if (dbgDoubtParam) {
+      DEBUG_REQUESTED_DOUBT_SQUARE = Math.max(1, Math.min(44, parseInt(dbgDoubtParam, 10) || 1));
+    }
+  }
+
+  // Reuses the exact same landing/card/Doubt machinery a real roll
+  // uses (resolveLanding, maybeShowRoomieIntro, showMainCard,
+  // maybeBonusRoomie, resolveDoubtTurn) — just skips the dice
+  // animation and jumps the token straight there. doubtSquareOverride
+  // lets one specific jump deliberately test a catch; every other call
+  // keeps The Doubt pinned safely behind (square - 15) so repeated
+  // testing never gets randomly interrupted by a reset.
+  function debugTriggerSquare(squareRaw, doubtSquareOverride) {
+    var square = Math.max(1, Math.min(44, parseInt(squareRaw, 10) || 1));
+    var key = getCharacterKey();
+    if (!key) return;
+
+    var squareInput = document.getElementById('debug-square-input');
+    if (squareInput) squareInput.value = square;
+
+    var doubtStart = (doubtSquareOverride != null) ? doubtSquareOverride : Math.max(1, square - 15);
+    setDoubtSquare(doubtStart);
+    placeDoubtToken(doubtStart);
+
+    localStorage.setItem('gameSquare', String(square));
+    var outcome = resolveLanding(square, key);
+    placeToken(square);
+    hideRollPrompt(); // matches what a real roll does at the start of its own click handler
+    document.getElementById('roll-result').hidden = true;
+    document.getElementById('board-sub').textContent = 'DEBUG: landed on Square ' + square + ' of 44.';
+
+    maybeShowRoomieIntro(outcome, key, function () {
+      showMainCard(outcome, key, function () {
+        var afterEffect = function () {
+          maybeBonusRoomie(outcome, key, function () {
+            resolveDoubtTurn(outcome, 1, function () {
+              finishTurnUI();
+            });
+          });
+        };
+        if (outcome.finalSquare !== square) {
+          window.setTimeout(function () {
+            placeToken(outcome.finalSquare);
+            window.setTimeout(afterEffect, 500);
+          }, 200);
+        } else {
+          afterEffect();
+        }
+      });
+    });
+  }
+
+  function initDebugPanel() {
+    var panel = document.getElementById('debug-panel');
+    if (!panel) return;
+    panel.hidden = false;
+
+    var squareInput = document.getElementById('debug-square-input');
+    var charSelect = document.getElementById('debug-character-select');
+
+    Object.keys(CHARACTERS).forEach(function (k) {
+      var opt = document.createElement('option');
+      opt.value = k;
+      opt.textContent = CHARACTERS[k].name;
+      charSelect.appendChild(opt);
+    });
+    charSelect.value = getCharacterKey() || 'fran';
+    squareInput.value = parseInt(localStorage.getItem('gameSquare') || '1', 10);
+
+    charSelect.addEventListener('change', function () {
+      localStorage.setItem('gameCharacter', charSelect.value);
+      renderSettledBoard(parseInt(squareInput.value, 10) || 1);
+    });
+    document.getElementById('debug-jump').addEventListener('click', function () {
+      debugTriggerSquare(squareInput.value);
+    });
+    document.getElementById('debug-prev').addEventListener('click', function () {
+      debugTriggerSquare(Math.max(1, (parseInt(squareInput.value, 10) || 1) - 1));
+    });
+    document.getElementById('debug-next').addEventListener('click', function () {
+      debugTriggerSquare(Math.min(44, (parseInt(squareInput.value, 10) || 1) + 1));
+    });
+
+    if (DEBUG_REQUESTED_SQUARE) {
+      debugTriggerSquare(DEBUG_REQUESTED_SQUARE, DEBUG_REQUESTED_DOUBT_SQUARE);
+    }
+  }
+
   // ---------- Initial screen on load ----------
   var storedCharacter = getCharacterKey();
   var storedSquare = localStorage.getItem('gameSquare');
@@ -2404,6 +2603,10 @@
     completeOpeningMove();
   } else {
     enterStaging();
+  }
+
+  if (DEBUG_ACTIVE) {
+    window.setTimeout(initDebugPanel, 500); // let the board render above settle first
   }
 })();
 </script>
