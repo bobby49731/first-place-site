@@ -290,14 +290,15 @@
   }
 
   /* ROOMIE WALL — replaces the mug+keys art (baked into the board
-     image) once the first roll happens. Bottom-left of the board's
+     image) once the first roll happens. Bottom-CENTER of the board's
      open center, clear of both dice poppers (which sit higher up,
      bottom:54.5%-71%) with plenty of margin — no separate background
      bar or title any more, just the shelf art itself sitting directly
      on the board. */
   .roomie-wall{
     position:absolute;
-    left:8.5%; bottom:8%;
+    left:50%; bottom:8%;
+    transform:translateX(-50%);
     height:34%;
     z-index:3;
   }
@@ -1811,31 +1812,33 @@
   }
 
   // ---------- Connection card — ALL 8 Connection squares (4, 11, 16,
-  // 22, 27, 33, 38, 43) now share one base pattern: the usual reveal-
-  // card header (icon/tag/title/text), a friend's contact info below
-  // it, and a Skip option. Skipping — or submitting a form with nothing
-  // in it — always means the same thing everywhere: no advance, stay
-  // exactly on the square landed on (resolveLanding already baked this
-  // square's own Advance N into outcome.finalSquare by default;
+  // 22, 27, 33, 38, 43) share one base pattern: the usual reveal-card
+  // header (icon/tag/title/text), one or more friends' contact info
+  // below it, and a Skip option. Skipping — or submitting a form with
+  // nothing in it — always means the same thing everywhere: no advance,
+  // stay exactly on the square landed on (resolveLanding already baked
+  // this square's own Advance N into outcome.finalSquare by default;
   // reverting it back to landedSquare is all "stay put" needs). Only a
   // valid email actually triggers a real send (POST /api/submit-
   // contact); a phone number is just captured for future SMS use.
   //
-  // Field shape varies per square (CONNECTION_SQUARES below): most show
-  // a full Name/Email/Phone trio ('trio'); Squares 16 and 27 simplify
-  // that down to Name + one merged field accepting either an email OR a
-  // phone number, not both at once ('flex' — whichever format it looks
-  // like decides which the server sees); Square 43 drops phone
-  // entirely, Name + Email only ('email'). ----------
+  // Each square in CONNECTION_SQUARES carries its own {fields, count}:
+  // `fields` is the per-person shape — 'flex' (Name + one merged field
+  // accepting either an email OR a phone number, not both at once —
+  // whichever format it looks like decides which the server sees) is
+  // the base pattern for every square except Square 43, which drops
+  // phone entirely (Name + Email only, 'email'). `count` is how many
+  // people that square lets you enter — 3 for Squares 16, 27, and 43;
+  // 1 (the original scope) for the rest. ----------
   var CONNECTION_SQUARES = {
-    4: 'trio',
-    11: 'trio',
-    16: 'flex',
-    22: 'trio',
-    27: 'flex',
-    33: 'trio',
-    38: 'trio',
-    43: 'email'
+    4: { fields: 'flex', count: 1 },
+    11: { fields: 'flex', count: 1 },
+    16: { fields: 'flex', count: 3 },
+    22: { fields: 'flex', count: 1 },
+    27: { fields: 'flex', count: 3 },
+    33: { fields: 'flex', count: 1 },
+    38: { fields: 'flex', count: 1 },
+    43: { fields: 'email', count: 3 }
   };
 
   // The card's own on-screen framing — each character's dream recast as
@@ -1878,7 +1881,8 @@
 
   function showConnectionCard(outcome, characterKey, onDone) {
     var square = outcome.landedSquare;
-    var spec = CONNECTION_SQUARES[square] || 'trio';
+    var spec = CONNECTION_SQUARES[square] || { fields: 'flex', count: 1 };
+    var count = spec.count || 1;
     var icon = document.getElementById('reveal-icon');
     var tag = document.getElementById('reveal-tag');
     var title = document.getElementById('reveal-title');
@@ -1905,38 +1909,40 @@
     submitBtn.textContent = 'Send Invite';
     skipBtn.disabled = false;
 
+    // Build `count` people, each Name + either one merged email-or-
+    // phone field ('flex') or Name + Email only ('email' — Square 43).
+    // With more than one person, each gets its own bordered
+    // .invite-contact-group so it visually reads as "N people," not a
+    // pile of loose fields; a single person stays flat, same look as
+    // before.
     fields.innerHTML = '';
-    var nameInput = document.createElement('input');
-    nameInput.type = 'text';
-    nameInput.className = 'invite-input';
-    nameInput.placeholder = "Friend's name";
-    fields.appendChild(nameInput);
+    var groups = [];
+    for (var i = 0; i < count; i++) {
+      var container = fields;
+      if (count > 1) {
+        container = document.createElement('div');
+        container.className = 'invite-contact-group';
+        fields.appendChild(container);
+      }
 
-    var emailInput = null, phoneInput = null, flexInput = null;
-    if (spec === 'trio') {
-      emailInput = document.createElement('input');
-      emailInput.type = 'email';
-      emailInput.className = 'invite-input';
-      emailInput.placeholder = 'Email';
-      fields.appendChild(emailInput);
+      var nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.className = 'invite-input';
+      nameInput.placeholder = "Friend's name";
+      container.appendChild(nameInput);
 
-      phoneInput = document.createElement('input');
-      phoneInput.type = 'tel';
-      phoneInput.className = 'invite-input';
-      phoneInput.placeholder = 'Phone';
-      fields.appendChild(phoneInput);
-    } else if (spec === 'email') {
-      emailInput = document.createElement('input');
-      emailInput.type = 'email';
-      emailInput.className = 'invite-input';
-      emailInput.placeholder = 'Email';
-      fields.appendChild(emailInput);
-    } else { // 'flex'
-      flexInput = document.createElement('input');
-      flexInput.type = 'text';
-      flexInput.className = 'invite-input';
-      flexInput.placeholder = 'Email or phone';
-      fields.appendChild(flexInput);
+      var mainInput = document.createElement('input');
+      if (spec.fields === 'email') {
+        mainInput.type = 'email';
+        mainInput.placeholder = 'Email';
+      } else {
+        mainInput.type = 'text';
+        mainInput.placeholder = 'Email or phone';
+      }
+      mainInput.className = 'invite-input';
+      container.appendChild(mainInput);
+
+      groups.push({ name: nameInput, main: mainInput });
     }
 
     var closed = false;
@@ -1964,21 +1970,25 @@
       message.textContent = msg;
     }
 
+    function collectContacts() {
+      return groups.map(function (g) {
+        var name = g.name.value.trim();
+        var mainVal = g.main.value.trim();
+        var email = '', phone = '';
+        if (spec.fields === 'email') {
+          email = mainVal;
+        } else if (mainVal) {
+          if (EMAIL_PATTERN.test(mainVal)) { email = mainVal; } else { phone = mainVal; }
+        }
+        return { name: name, email: email, phone: phone };
+      });
+    }
+
     form.onsubmit = function (e) {
       e.preventDefault();
-      var name = nameInput.value.trim();
-      var email = '', phone = '';
-      if (spec === 'trio') {
-        email = emailInput.value.trim();
-        phone = phoneInput.value.trim();
-      } else if (spec === 'email') {
-        email = emailInput.value.trim();
-      } else {
-        var flexVal = flexInput.value.trim();
-        if (EMAIL_PATTERN.test(flexVal)) { email = flexVal; } else { phone = flexVal; }
-      }
-
-      if (!name && !email && !phone) {
+      var contacts = collectContacts();
+      var anyEntered = contacts.some(function (c) { return c.name || c.email || c.phone; });
+      if (!anyEntered) {
         stayPutAndDone();
         return;
       }
@@ -1991,7 +2001,7 @@
       fetch('/api/submit-contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ square: square, character: characterKey, contact: { name: name, email: email, phone: phone } })
+        body: JSON.stringify({ square: square, character: characterKey, contacts: contacts })
       })
         .then(function (res) {
           return res.json().catch(function () { return {}; }).then(function (data) {

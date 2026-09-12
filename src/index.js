@@ -29,24 +29,28 @@
 //
 //   POST /api/submit-contact — the game's single shared route for all 8
 //   Connection squares (4, 11, 16, 22, 27, 33, 38, 43 — see
-//   CONNECTION_SQUARES in game.html). Takes one { name, email, phone }
-//   contact; it "counts" with a name plus either a valid email or a phone
-//   number. A valid email triggers a real Resend send (RESEND_API_KEY),
-//   using the SAME email content everywhere regardless of which square
-//   or character triggered it (INVITE_TEMPLATE below) — the on-screen
-//   card copy stays square/character-specific, but what actually lands
-//   in the friend's inbox is consistent. A phone number is written to
-//   the GAME_CONTACTS KV namespace for future SMS use — captured only,
-//   no message sent yet. Responds { success, advanced }: success is
+//   CONNECTION_SQUARES in game.html). Takes a `contacts` array of
+//   { name, email, phone } entries — 1 person for most squares, up to 3
+//   for Squares 16, 27, and 43 (how many the client shows is purely a
+//   UI concern; the server treats a 1-element array the same as a
+//   3-element one). Each contact "counts" with a name plus either a
+//   valid email or a phone number. Every qualifying valid email triggers
+//   a real Resend send (RESEND_API_KEY), using the SAME email content
+//   everywhere regardless of which square or character triggered it
+//   (INVITE_TEMPLATE below) — the on-screen card copy stays square/
+//   character-specific, but what actually lands in the friend's inbox is
+//   consistent. Every qualifying phone number is written to the
+//   GAME_CONTACTS KV namespace for future SMS use — captured only, no
+//   message sent yet. Responds { success, advanced }: success is
 //   whether the request itself was handled without error; advanced is
-//   whether the contact counted, which is what the client uses to decide
-//   whether the player's token moves — skipping, or submitting nothing
-//   that counts, both come back as { success: true, advanced: false },
-//   since neither is an error, just nothing to advance for. Unlike
-//   check-subscriber, a genuine send failure (bad key, Resend error,
-//   network issue) comes back as an honest { success: false } — the
-//   client only advances once this genuinely reports success, so that
-//   has to mean something real.
+//   whether at least one contact counted, which is what the client uses
+//   to decide whether the player's token moves — skipping, or
+//   submitting nothing that counts, both come back as
+//   { success: true, advanced: false }, since neither is an error, just
+//   nothing to advance for. Unlike check-subscriber, a genuine send
+//   failure (bad key, Resend error, network issue) comes back as an
+//   honest { success: false } — the client only advances once this
+//   genuinely reports success, so that has to mean something real.
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -157,12 +161,12 @@ async function submitContact(request, env) {
     return new Response('Method not allowed', { status: 405 });
   }
 
-  let square, character, contact;
+  let square, character, contacts;
   try {
     const body = await request.json();
     square = parseInt(body.square, 10);
     character = typeof body.character === 'string' ? body.character.trim().toLowerCase() : '';
-    contact = body.contact && typeof body.contact === 'object' ? body.contact : {};
+    contacts = Array.isArray(body.contacts) ? body.contacts : [];
   } catch (err) {
     return jsonResponse({ success: false, error: 'Invalid request body' }, 400);
   }
@@ -171,32 +175,43 @@ async function submitContact(request, env) {
     return jsonResponse({ success: false, error: 'Unknown square' }, 400);
   }
 
-  const cleaned = {
-    name: typeof contact.name === 'string' ? contact.name.trim() : '',
-    email: typeof contact.email === 'string' ? contact.email.trim().toLowerCase() : '',
-    phone: typeof contact.phone === 'string' ? contact.phone.trim() : ''
-  };
+  const cleaned = contacts.map(function (c) {
+    c = c && typeof c === 'object' ? c : {};
+    return {
+      name: typeof c.name === 'string' ? c.name.trim() : '',
+      email: typeof c.email === 'string' ? c.email.trim().toLowerCase() : '',
+      phone: typeof c.phone === 'string' ? c.phone.trim() : ''
+    };
+  });
 
-  const validEmail = !!(cleaned.email && EMAIL_PATTERN.test(cleaned.email));
   // A contact "counts" with a name plus either a valid email or a phone
-  // number — matching what the card itself asks for.
-  const qualifies = !!cleaned.name && (validEmail || !!cleaned.phone);
+  // number — matching what the card itself asks for. A square that only
+  // takes 1 person still arrives here as a 1-element array, so this
+  // logic is identical regardless of how many people a square allows.
+  const qualifying = cleaned.filter(function (c) {
+    if (!c.name) return false;
+    return (c.email && EMAIL_PATTERN.test(c.email)) || !!c.phone;
+  });
 
-  if (!qualifies) {
+  if (!qualifying.length) {
     // Not an error — the client treats this exactly like Skip.
     return jsonResponse({ success: true, advanced: false });
   }
 
-  if (validEmail) {
+  const toEmail = qualifying.filter(function (c) { return c.email && EMAIL_PATTERN.test(c.email); });
+  if (toEmail.length) {
     if (!env.RESEND_API_KEY) {
       // Unlike check-subscriber, this genuinely can't succeed without
       // the key — say so honestly rather than pretending it worked.
       return jsonResponse({ success: false, error: 'Email sending is not configured' }, 500);
     }
     try {
-      const sent = await sendOneInvite(env, cleaned.email, INVITE_TEMPLATE);
-      if (!sent) {
-        return jsonResponse({ success: false, error: 'Email failed to send' }, 502);
+      const results = await Promise.all(
+        toEmail.map(function (c) { return sendOneInvite(env, c.email, INVITE_TEMPLATE); })
+      );
+      const allSent = results.every(function (ok) { return ok; });
+      if (!allSent) {
+        return jsonResponse({ success: false, error: 'One or more emails failed to send' }, 502);
       }
     } catch (err) {
       return jsonResponse({ success: false, error: 'Email sending failed' }, 502);
@@ -206,17 +221,20 @@ async function submitContact(request, env) {
   // Phone capture is best-effort — a KV hiccup shouldn't block the
   // player's turn from resolving, since nothing is actually sent to
   // these numbers yet (captured for future SMS use only).
-  if (cleaned.phone && env.GAME_CONTACTS) {
-    const key = 'contact:' + square + ':' + Date.now() + ':' + Math.random().toString(36).slice(2, 8);
-    const value = JSON.stringify({
-      name: cleaned.name,
-      phone: cleaned.phone,
-      email: cleaned.email || null,
-      square: square,
-      character: character || null,
-      capturedAt: new Date().toISOString()
-    });
-    await env.GAME_CONTACTS.put(key, value).catch(function () {});
+  const toStore = qualifying.filter(function (c) { return c.phone; });
+  if (toStore.length && env.GAME_CONTACTS) {
+    await Promise.all(toStore.map(function (c) {
+      const key = 'contact:' + square + ':' + Date.now() + ':' + Math.random().toString(36).slice(2, 8);
+      const value = JSON.stringify({
+        name: c.name,
+        phone: c.phone,
+        email: c.email || null,
+        square: square,
+        character: character || null,
+        capturedAt: new Date().toISOString()
+      });
+      return env.GAME_CONTACTS.put(key, value).catch(function () {});
+    }));
   }
 
   return jsonResponse({ success: true, advanced: true });
