@@ -407,8 +407,10 @@
   .reveal-action:hover{background:#FFC15A;}
   .reveal-action[hidden]{display:none;}
 
-  /* INVITE FORM — swapped in for reveal-action on the 3 "party" email-
-     invite Connection squares (22, 33, 38). Same card, same header
+  /* INVITE FORM — swapped in for reveal-action on the 3 single-contact
+     "party" email-invite Connection squares (22, 33, 38) and, with
+     .invite-contact-group blocks instead of plain .invite-input fields,
+     the 3 multi-contact squares (16, 27, 43). Same card, same header
      (icon/tag/title/text), just a different bottom section. */
   .invite-form[hidden]{display:none;}
   .invite-fields{
@@ -423,6 +425,15 @@
   }
   .invite-input::placeholder{color:#9A8FA6;}
   .invite-input.invalid{box-shadow:inset 0 0 0 2px #E0637E;}
+  /* One contact's Name/Email/Phone trio, for the 3-contact squares —
+     grouped in its own bordered block so 3 of these reads as "3 people"
+     rather than 9 loose fields. */
+  .invite-contact-group{
+    display:flex; flex-direction:column; gap:6px;
+    padding:10px; border:1px solid var(--line); border-radius:12px;
+    background:var(--paper-2);
+  }
+  .invite-contact-group .invite-input{background:#fff;}
   .invite-submit{
     background:var(--gold); color:var(--plum); border:0;
     padding:12px 28px; border-radius:10px; width:100%;
@@ -432,8 +443,9 @@
   .invite-submit:hover{background:#FFC15A;}
   .invite-submit:disabled{opacity:0.7; cursor:not-allowed;}
   /* Skip is deliberately understated (plain text link, not a button)
-     next to the real "Invite to the Party" action — a real choice, not
-     an equally-weighted alternative, since it comes with a setback. */
+     next to the real submit action — a real choice, not an equally-
+     weighted alternative, even on the 3-contact squares where skipping
+     just means staying put rather than a setback. */
   .invite-skip{
     display:block; margin:10px auto 0;
     background:none; border:0; color:var(--ink-soft);
@@ -894,14 +906,14 @@
     { n: 1, type: 'corner', label: 'START', text: 'Boxes everywhere, keys in hand. The journey begins.' },
     { n: 2, type: 'milestone', text: "Answered every question like you'd rehearsed it in the mirror (you had). Job interview — nailed it. Advance 2." },
     { n: 3, type: 'setback', text: 'Fifteen minutes patting every pocket, retracing every step — nowhere. Lost your keys already. Lose a turn.' },
-    { n: 4, type: 'connection', text: 'Email 3 friends about First Place. Advance 3.' },
+    { n: 4, type: 'connection', text: 'Got an encouraging letter from your parents to follow your dreams. Advance 3.' },
     { n: 5, type: 'collectible', text: 'Find a Roomie!' },
     { n: 6, type: 'setback', text: 'You were saving that for lunch. Your roommate had other ideas. Move back 1.' },
     { n: 7, type: 'milestone', text: 'One load down, zero doll-sized sweaters to show for it. Learned to do laundry without shrinking everything. Advance 2.' },
     { n: 8, type: 'story', text: { fran: 'Studio time booked!', jeremy: "Got the dispatcher's number.", will: 'Email back from a Lucasfilm assistant.', martha: 'First venue says yes.' } },
     { n: 9, type: 'setback', text: 'Ran the whole block, watched it pull away anyway. Missed the bus. Move back 2.' },
     { n: 10, type: 'milestone', text: 'Traded names with the regular two seats over — small talk turned into an actual friend. Made a new friend at the coffee shop. Advance 2.' },
-    { n: 11, type: 'connection', text: 'Share your board on social. Advance 3.' },
+    { n: 11, type: 'connection', text: 'You met a love interest and she is wild about you pursuing your dream. Advance 3.' },
     { n: 12, type: 'corner', label: 'CHECKPOINT', text: "The apartment's starting to feel like home." },
     { n: 13, type: 'setback', text: "You just had them. You SWEAR you just had them. Lost the scissors. Again. Lose a turn." },
     { n: 14, type: 'milestone', text: 'First paycheck. Direct deposit never felt so real. Advance 2.' },
@@ -917,7 +929,7 @@
     { n: 24, type: 'milestone', text: "Vegetables, seasoning, an actual recipe — learned to cook something that wasn't cereal. Advance 2." },
     { n: 25, type: 'setback', text: 'The one shirt without a single stain — gone in one clumsy sip. Spilled coffee on your only clean shirt. Move back 1.' },
     { n: 26, type: 'collectible', text: 'Find a Roomie!' },
-    { n: 27, type: 'connection', text: 'Leave a comment/review somewhere. Advance 3.' },
+    { n: 27, type: 'connection', text: 'Email your friends. Advance 3.' },
     { n: 28, type: 'setback', text: "Slept right through it, phone silently judging you from the nightstand. Alarm didn't go off. Move back 2." },
     { n: 29, type: 'milestone', text: 'Unprompted, no less. Got a compliment from your boss. Advance 2.' },
     { n: 30, type: 'story', text: { fran: 'Recorded the hook.', jeremy: 'Vest fitted, radio clipped on.', will: 'First pages sent for notes.', martha: 'Ticket sales open.' } },
@@ -1612,11 +1624,13 @@
   // ---------- Invite form — the same reveal-card header (icon/tag/
   // title/text), but with a real email field + "Invite to the Party" /
   // Skip standing in for the usual Continue/Confirm button, for the 3
-  // "party" Connection squares (22, 33, 38). Squares 4, 16, 11, 27, and
-  // 43 all stay on the plain honor-system Confirm button above. Only
-  // resolves the square's own advance value once /api/send-invite
-  // actually confirms the send; Skip is the alternative, and comes
-  // with a real setback (move back) rather than a free pass. ----------
+  // single-contact "party" Connection squares (22, 33, 38). Squares 4
+  // and 11 are pure narrative now (plain Confirm, no action). Squares
+  // 16, 27, and 43 get the separate 3-contact form below
+  // (showMultiContactCard). Only resolves the square's own advance
+  // value once /api/send-invite actually confirms the send; Skip is
+  // the alternative, and comes with a real setback (move back) rather
+  // than a free pass. ----------
   var EMAIL_INVITE_SQUARES = {
     22: 1,
     33: 1,
@@ -1746,13 +1760,187 @@
     overlay.classList.add('open');
   }
 
-  // Picks the invite-card for the 3 "party" email-invite squares (22,
-  // 33, 38), the plain reveal-card for everything else — including
-  // Squares 4 and 16, downgraded back to the honor-system Confirm
-  // button alongside 11, 27, and 43.
+  // ---------- 3-contact form — Squares 16, 27, and 43. Same card shell
+  // as showInviteCard, but each of the 3 fields is a
+  // Name/Email/Phone trio (.invite-contact-group) instead of a lone
+  // email input. A contact "counts" with a name plus either a valid
+  // email or a phone number; only entries with a valid email actually
+  // trigger a Resend send (via /api/submit-contacts, mirroring
+  // /api/send-invite's template-by-character pattern for Square 27),
+  // phone numbers are just captured server-side for future SMS use.
+  // Skip — or submitting nothing that counts — has NO backward
+  // penalty, unlike the party squares' Skip: the player simply stays
+  // on the square they landed on rather than picking up its Advance 3. ----------
+  var MULTI_CONTACT_SQUARES = {
+    16: 3,
+    27: 3,
+    43: 3
+  };
+
+  // Squares 16 and 43 keep their existing framing regardless of
+  // character; Square 27 is reframed per character below.
+  var MULTI_CONTACT_INTRO = {
+    16: 'Invite someone to pick their character.',
+    43: 'Share your board one more time.'
+  };
+  var FRIEND_BOOST_INTRO = {
+    fran: "Fran's journey is halfway there — she could use that 5-star boost. Email your friends.",
+    jeremy: "Jeremy's journey is halfway there — he could use that 5-star boost. Email your friends.",
+    will: "Will's journey is halfway there — he could use that 5-star boost. Email your friends.",
+    martha: "Martha's journey is halfway there — she could use that 5-star boost. Email your friends."
+  };
+
+  function multiContactIntroText(square, characterKey) {
+    if (square === 27) return FRIEND_BOOST_INTRO[characterKey] || 'Email your friends.';
+    return MULTI_CONTACT_INTRO[square] || '';
+  }
+
+  function showMultiContactCard(outcome, characterKey, onDone) {
+    var square = outcome.landedSquare;
+    var count = MULTI_CONTACT_SQUARES[square] || 3;
+    var icon = document.getElementById('reveal-icon');
+    var tag = document.getElementById('reveal-tag');
+    var title = document.getElementById('reveal-title');
+    var text = document.getElementById('reveal-text');
+    var action = document.getElementById('reveal-action');
+    var overlay = document.getElementById('reveal-overlay');
+    var form = document.getElementById('invite-form');
+    var fields = document.getElementById('invite-fields');
+    var submitBtn = document.getElementById('invite-submit');
+    var skipBtn = document.getElementById('invite-skip');
+    var message = document.getElementById('invite-message');
+
+    icon.innerHTML = '<img src="' + iconSrcForSquare(outcome.landedSquare) + '" alt="">';
+    tag.className = 'reveal-tag type-' + (outcome.landedType || 'connection');
+    tag.textContent = TYPE_LABEL[outcome.landedType] || '';
+    title.textContent = outcome.landedLabel || ('Square ' + outcome.landedSquare);
+    text.textContent = multiContactIntroText(square, characterKey);
+    positionRevealCard(outcome.landedSquare);
+
+    action.hidden = true;
+    form.hidden = false;
+    message.hidden = true;
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Send Invites';
+    skipBtn.disabled = false;
+
+    fields.innerHTML = '';
+    var groups = [];
+    for (var i = 0; i < count; i++) {
+      var group = document.createElement('div');
+      group.className = 'invite-contact-group';
+
+      var nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.className = 'invite-input';
+      nameInput.placeholder = 'Name';
+
+      var emailInput = document.createElement('input');
+      emailInput.type = 'email';
+      emailInput.className = 'invite-input';
+      emailInput.placeholder = 'Email';
+
+      var phoneInput = document.createElement('input');
+      phoneInput.type = 'tel';
+      phoneInput.className = 'invite-input';
+      phoneInput.placeholder = 'Phone';
+
+      group.appendChild(nameInput);
+      group.appendChild(emailInput);
+      group.appendChild(phoneInput);
+      fields.appendChild(group);
+      groups.push({ name: nameInput, email: emailInput, phone: phoneInput });
+    }
+
+    var closed = false;
+    function closeAndDone() {
+      if (closed) return;
+      closed = true;
+      overlay.classList.remove('open');
+      window.setTimeout(onDone, 260);
+    }
+
+    // No backward penalty here — just don't pick up this square's own
+    // Advance 3, which resolveLanding already baked into
+    // outcome.finalSquare by default. Reverting it back to the landed
+    // square is enough; no chain-hop needed since that's exactly where
+    // the token already visually is.
+    function stayPutAndDone() {
+      outcome.finalSquare = outcome.landedSquare;
+      closeAndDone();
+    }
+
+    function showError(msg) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send Invites';
+      skipBtn.disabled = false;
+      message.hidden = false;
+      message.className = 'invite-message error';
+      message.textContent = msg;
+    }
+
+    form.onsubmit = function (e) {
+      e.preventDefault();
+      var contacts = groups.map(function (g) {
+        return {
+          name: g.name.value.trim(),
+          email: g.email.value.trim(),
+          phone: g.phone.value.trim()
+        };
+      });
+      var anyEntered = contacts.some(function (c) { return c.name || c.email || c.phone; });
+      if (!anyEntered) {
+        stayPutAndDone();
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending…';
+      skipBtn.disabled = true;
+      message.hidden = true;
+
+      fetch('/api/submit-contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ square: square, character: characterKey, contacts: contacts })
+      })
+        .then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (data) {
+            return { ok: res.ok, data: data };
+          });
+        })
+        .then(function (result) {
+          if (result.ok && result.data && result.data.success) {
+            if (!result.data.advanced) {
+              outcome.finalSquare = outcome.landedSquare;
+            }
+            closeAndDone();
+          } else {
+            showError("Couldn't send right now — please try again.");
+          }
+        })
+        .catch(function () {
+          showError("Couldn't send right now — please try again.");
+        });
+    };
+
+    skipBtn.onclick = function () {
+      if (closed) return;
+      stayPutAndDone();
+    };
+
+    overlay.classList.add('open');
+  }
+
+  // Picks the single-contact invite-card for the 3 "party" squares (22,
+  // 33, 38), the 3-contact form for Squares 16, 27, and 43, and the
+  // plain reveal-card (honor-system Confirm) for everything else —
+  // including Squares 4 and 11, now pure narrative.
   function showMainCard(outcome, characterKey, onDone) {
     if (EMAIL_INVITE_SQUARES[outcome.landedSquare]) {
       showInviteCard(outcome, characterKey, onDone);
+    } else if (MULTI_CONTACT_SQUARES[outcome.landedSquare]) {
+      showMultiContactCard(outcome, characterKey, onDone);
     } else {
       showRevealCard(outcome, characterKey, onDone);
     }

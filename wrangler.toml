@@ -11,3 +11,7 @@ custom_domain = true
 directory = "./public/"
 binding = "ASSETS"
 run_worker_first = ["/api/*"]
+
+[[kv_namespaces]]
+binding = "GAME_CONTACTS"
+id = "e027d550dd1c4bbca2c725315a307526"
