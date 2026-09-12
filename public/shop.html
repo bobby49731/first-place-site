@@ -373,6 +373,18 @@
   .card-will{background:var(--blue);}
   .card-will .pledge-btn{color:var(--blue-deep);}
 
+  /* Two pledge buttons per card now: the dream-fulfillment pledge
+     (new, primary — keeps the solid white-pill look above) sits first,
+     the pre-manufacture product pledge (existing, relabeled) sits
+     second in a lighter outline treatment so the hierarchy reads
+     clearly without the two competing for attention. */
+  .pledge-btn.pledge-btn-secondary{
+    background:transparent;
+    border:1.5px solid rgba(255,255,255,0.75);
+    color:#fff;
+  }
+  .pledge-btn.pledge-btn-secondary:hover{background:rgba(255,255,255,0.12);}
+
   /* DREAM-FIRST CARD — collapsed by default (cropped photo + teaser
      badge + expand hint); click/tap anywhere on it to smoothly expand
      into the full photo, dream copy, product info, ask line, goal, and
@@ -588,6 +600,16 @@
     color:var(--ink-soft);
     font-size:14px;
     line-height:1.6;
+  }
+  .pledge-info p + h3{margin-top:20px;}
+  .pledge-info h3{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    color:var(--gold-deep);
+    margin-bottom:8px;
   }
   .pledge-info a{
     color:var(--plum);
@@ -1082,7 +1104,8 @@
             Goal: $7,000
           </span>
 
-          <a class="pledge-btn" href="https://buy.stripe.com/test_00w9AM9k4h0s3sn69d8IU00" target="_blank" rel="noopener">Pledge</a>
+          <a class="pledge-btn" href="https://buy.stripe.com/aFa00ceEYe6SexOaP2fnO05" target="_blank" rel="noopener">Give to Fran's Dream Fulfillment</a>
+          <a class="pledge-btn pledge-btn-secondary" href="https://buy.stripe.com/test_00w9AM9k4h0s3sn69d8IU00" target="_blank" rel="noopener">Pledge Toward the Frooney</a>
 
           <button type="button" class="card-collapse">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="18 15 12 9 6 15"/></svg>
@@ -1128,7 +1151,8 @@
             Goal: $10,000
           </span>
 
-          <a class="pledge-btn" href="https://buy.stripe.com/test_fZuaEQbscaC4fb57dh8IU05" target="_blank" rel="noopener">Pledge</a>
+          <a class="pledge-btn" href="https://buy.stripe.com/9B6bIUgN6gf061ig9mfnO08" target="_blank" rel="noopener">Give to Martha's Dream Fulfillment</a>
+          <a class="pledge-btn pledge-btn-secondary" href="https://buy.stripe.com/test_fZuaEQbscaC4fb57dh8IU05" target="_blank" rel="noopener">Pledge Toward the Penclet</a>
 
           <button type="button" class="card-collapse">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="18 15 12 9 6 15"/></svg>
@@ -1138,7 +1162,7 @@
       </div>
     </div>
 
-    <div class="joke-card card-jeremy">
+    <div class="joke-card card-will">
       <button type="button" class="card-toggle" aria-expanded="false" aria-controls="expanded-will">
         <div class="dream-photo-wrap">
           <img class="dream-photo" src="assets/dreams/will-dream.png" alt="Will's dream: writing alongside the Star Wars universe">
@@ -1174,7 +1198,8 @@
             Goal: $3,000
           </span>
 
-          <a class="pledge-btn" href="https://buy.stripe.com/test_fZu3cogMwh0s1kfgNR8IU01" target="_blank" rel="noopener">Pledge</a>
+          <a class="pledge-btn" href="https://buy.stripe.com/14A7sEeEY1k6gFW1esfnO06" target="_blank" rel="noopener">Give to Will's Dream Fulfillment</a>
+          <a class="pledge-btn pledge-btn-secondary" href="https://buy.stripe.com/test_fZu3cogMwh0s1kfgNR8IU01" target="_blank" rel="noopener">Pledge Toward the Will You Be Mine</a>
 
           <button type="button" class="card-collapse">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="18 15 12 9 6 15"/></svg>
@@ -1184,7 +1209,7 @@
       </div>
     </div>
 
-    <div class="joke-card card-will">
+    <div class="joke-card card-jeremy">
       <button type="button" class="card-toggle" aria-expanded="false" aria-controls="expanded-jeremy">
         <div class="dream-photo-wrap">
           <img class="dream-photo" src="assets/dreams/jeremy-dream.png" alt="Jeremy's dream: a ride-along with the cops of Cops">
@@ -1220,7 +1245,8 @@
             Goal: $5,000
           </span>
 
-          <a class="pledge-btn" href="https://buy.stripe.com/test_bJe6oA1RCh0sbYT69d8IU04" target="_blank" rel="noopener">Pledge</a>
+          <a class="pledge-btn" href="https://buy.stripe.com/6oU4gs68sgf0ahy8GUfnO07" target="_blank" rel="noopener">Give to Jeremy's Dream Fulfillment</a>
+          <a class="pledge-btn pledge-btn-secondary" href="https://buy.stripe.com/test_bJe6oA1RCh0sbYT69d8IU04" target="_blank" rel="noopener">Pledge Toward Misplaced by Jeremy™</a>
 
           <button type="button" class="card-collapse">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="18 15 12 9 6 15"/></svg>
@@ -1239,6 +1265,14 @@
   -->
   <div class="pledge-info">
     <h2>How pledging works</h2>
+    <p>
+      We are funding the dream manifestation for the cast — they all have
+      big plans for their lives that, if manifested, can help other people
+      too. You can support them two ways: pledge toward their dream
+      fulfillment (their bigger personal mission), or pledge toward their
+      pre-manufacture product.
+    </p>
+    <h3>Product pledges</h3>
     <p>
       These are pre-manufacture products — pledging isn't the same as buying
       something in stock. Your pledge goes toward funding production. If a
