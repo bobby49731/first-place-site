@@ -1399,18 +1399,6 @@
     card.style.top = topPct + '%';
   }
 
-  // Small floating bubble/button, hovering just above whatever square's
-  // token it's attached to (The Doubt's insult line above his own token,
-  // the player's response button above theirs) — much smaller than the
-  // reveal card, so a looser clamp is enough to keep it on the board.
-  function positionFloatingAboveSquare(el, square, liftPct) {
-    var p = cellPercent(square);
-    var leftPct = Math.max(6, Math.min(94, p.left));
-    var topPct = Math.max(3, Math.min(94, 100 - p.bottom - liftPct));
-    el.style.left = leftPct + '%';
-    el.style.top = topPct + '%';
-  }
-
   var screens = {
     select: document.getElementById('screen-select'),
     dream: document.getElementById('screen-dream'),
@@ -2099,24 +2087,74 @@
   // reply would feel.
   var DOUBT_RESPONSE_DELAY_MS = 1300;
 
-  function showDoubtVoice(doubtSquare, playerSquare, onDone) {
+  // Positions a speech bubble directly above whatever token stands on a
+  // given SQUARE — using that square's own cellPercent math (not the
+  // token element's live bounding box) for the horizontal/bottom
+  // anchor, since the token itself is still mid-flight through its own
+  // 0.6s CSS left/bottom transition when this runs; reading its
+  // bounding box at that moment would capture a stale, in-between
+  // position. Only the token's HEIGHT is read live off the DOM (safe —
+  // width/height never animate, only position does), so the "head"
+  // clearance still holds correctly regardless of any per-character art
+  // aspect-ratio differences.
+  //
+  // lineMultiple is in units of the board's own current line-height (as
+  // rendered right now, so it scales correctly at any screen size too):
+  // the player's response sits close, about one line above its own
+  // token; The Doubt's insult sits about two lines above his — the
+  // extra line is what keeps the two from ever visually colliding even
+  // when both tokens are right next to each other, while still reading
+  // as "his own line" rather than floating far away.
+  //
+  // Both bubbles are centered via CSS transform:translate(-50%,-50%),
+  // so their own `top` is their vertical CENTER, not their bottom edge
+  // — el must already be unhidden with its final text in place (so its
+  // own rendered height is known) before calling this, so the gap can
+  // be measured from its actual bottom edge rather than its center.
+  function positionSpeechAboveToken(el, square, tokenHeightPx, lineHeightPx, lineMultiple) {
+    var board = document.getElementById('board-frame').getBoundingClientRect();
+    var elRect = el.getBoundingClientRect();
+    var p = cellPercent(square); // {left: %, bottom: %} of the square's own cell
+    var gapPx = lineHeightPx * lineMultiple;
+    // How far up from the cell's bottom-anchor the bubble's own center
+    // needs to sit, in percent of the board's height: clear the
+    // token's full rendered height, then the line-height gap, then
+    // half the bubble's own height (since `top` is its center).
+    var upFromBottomPct = (tokenHeightPx + gapPx + elRect.height / 2) / board.height * 100;
+    var leftPct = Math.max(6, Math.min(94, p.left));
+    var topPct = Math.max(3, Math.min(94, 100 - p.bottom - upFromBottomPct));
+    el.style.left = leftPct + '%';
+    el.style.top = topPct + '%';
+  }
+
+  function showDoubtVoice(onDone) {
     var idx = nextDoubtLineIndex();
     var voice = document.getElementById('doubt-voice');
     var response = document.getElementById('doubt-response');
+    var doubtSquare = getDoubtSquare();
+    var playerSquare = parseInt(localStorage.getItem('gameSquare') || '1', 10);
+    var doubtTokenHeight = document.getElementById('doubt-token').getBoundingClientRect().height;
+    var playerTokenHeight = document.getElementById('board-token').getBoundingClientRect().height;
+
+    // Both bubbles use the same italic-quote line-height as their
+    // shared unit of "one line," read live off the voice bubble's own
+    // text element so it tracks its clamp(...)'d font-size at any
+    // viewport width.
+    var lineHeightPx = parseFloat(window.getComputedStyle(document.getElementById('doubt-voice-text')).lineHeight) || 17.5;
 
     document.getElementById('doubt-voice-text').textContent = '“' + DOUBT_LINES[idx] + '”';
-    // Lifted noticeably higher than the player's own response button
-    // below (liftPct 9) — roughly a full bubble-height of clearance —
-    // so the two never visually collide even in the tightest realistic
-    // case (The Doubt one square behind the player — as close as the
-    // catch rule ever allows two DIFFERENT squares to sit).
-    positionFloatingAboveSquare(voice, doubtSquare, 30);
-    voice.hidden = false;
+    voice.hidden = false; // unhide first so its rendered height is measurable
+    positionSpeechAboveToken(voice, doubtSquare, doubtTokenHeight, lineHeightPx, 2);
     void voice.offsetWidth; // restart the pop-in if it's showing again quickly
     voice.classList.add('open');
 
+    // The response stays hidden until its own delayed reveal below, but
+    // briefly unhides here (no visible flash — nothing paints between
+    // these two synchronous lines) just so its real rendered height is
+    // known for the same center-anchor math the voice bubble just used.
     response.textContent = DOUBT_RESPONSES[idx];
-    positionFloatingAboveSquare(response, playerSquare, 9);
+    response.hidden = false;
+    positionSpeechAboveToken(response, playerSquare, playerTokenHeight, lineHeightPx, 1);
     response.hidden = true;
     response.classList.remove('open', 'pulse');
 
@@ -2208,7 +2246,7 @@
             if (!localStorage.getItem('gameSquare') || parseInt(localStorage.getItem('gameSquare'), 10) !== playerOutcome.finalSquare) {
               localStorage.setItem('gameSquare', String(playerOutcome.finalSquare));
             }
-            showDoubtVoice(doubtTo, playerOutcome.finalSquare, onDone);
+            showDoubtVoice(onDone);
           }
         }, 400);
       }, 300);
