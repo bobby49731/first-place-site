@@ -28,16 +28,20 @@
 //   your email" flow on the site always still works as the fallback.
 //
 //   POST /api/send-invite — sends a real friend-invite email via Resend
-//   (RESEND_API_KEY), for the game's 5 direct-contact Connection squares
-//   (4, 16, 22, 33, 38 — see EMAIL_INVITE_SQUARES in game.html). Subject
-//   and body are looked up server-side by square number, never taken from
-//   the client, so a tampered request can't be used to send arbitrary
-//   email content through our verified domain. Unlike check-subscriber,
-//   this one does NOT fail safe — the client only advances the player's
-//   token once this genuinely reports { success: true }, so a real
-//   failure (bad key, Resend error, network issue) has to come back as an
-//   honest failure for the "on successful send" game rule to mean
-//   anything.
+//   (RESEND_API_KEY), for the game's 3 "party" Connection squares (22,
+//   33, 38 — see EMAIL_INVITE_SQUARES in game.html; Squares 4 and 16
+//   were downgraded back to the plain honor-system Confirm button, same
+//   as 11/27/43, so they never call this route). The invite is framed
+//   around whichever character is currently being played throwing a
+//   party to celebrate their own dream — so subject/body are looked up
+//   server-side by the submitted character, never taken as free-form
+//   text from the client, so a tampered request can't be used to send
+//   arbitrary email content through our verified domain. Unlike
+//   check-subscriber, this one does NOT fail safe — the client only
+//   advances the player's token once this genuinely reports
+//   { success: true }, so a real failure (bad key, Resend error,
+//   network issue) has to come back as an honest failure for the "on
+//   successful send" game rule to mean anything.
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -48,65 +52,53 @@ const SITE_URL = 'https://watchfirstplace.com';
 const INVITE_FROM = 'The First Place Team <invites@watchfirstplace.com>';
 const RESEND_API_URL = 'https://api.resend.com/emails';
 
-// Shared body copy, reused (with small per-square variations) across
-// every template below.
-const CORE_TEXT = "Hey — have you checked out First Place? It's a new show " +
-  'about autistic folks and people with Down syndrome moving out and ' +
-  'living independently for the first time. Heartwarming, funny, real. ' +
-  'Thought of you.';
-const CORE_HTML = '<p>Hey &mdash; have you checked out <strong>First Place</strong>? ' +
-  'It&rsquo;s a new show about autistic folks and people with Down syndrome ' +
-  'moving out and living independently for the first time. Heartwarming, ' +
-  'funny, real. Thought of you.</p>';
+// How many recipient fields the client shows for each party square —
+// all 3 are single-recipient.
+const EMAIL_INVITE_SQUARES = { 22: 1, 33: 1, 38: 1 };
 
-const SEEN_TEXT = 'Have you seen this yet? First Place is a new show about ' +
-  'autistic folks and people with Down syndrome moving out and living ' +
-  'independently for the first time. Heartwarming, funny, real. Thought ' +
-  'of you.';
-const SEEN_HTML = '<p>Have you seen this yet? <strong>First Place</strong> is a new ' +
-  'show about autistic folks and people with Down syndrome moving out and ' +
-  'living independently for the first time. Heartwarming, funny, real. ' +
-  'Thought of you.</p>';
-
-const GAME_LINE_TEXT = "There's a little game on the site too — you should pick a character.";
-const GAME_LINE_HTML = '<p>There&rsquo;s a little game on the site too &mdash; you should ' +
-  'pick a character.</p>';
-
-const LINK_TEXT = 'Check it out here: ' + SITE_URL;
-const LINK_HTML = '<p>Check it out here: <a href="' + SITE_URL + '">' + SITE_URL + '</a></p>';
-
-// One entry per email-invite square: how many recipient fields the client
-// shows, and the subject/body actually sent (server-authoritative).
-const INVITE_TEMPLATES = {
-  4: {
-    count: 3,
-    subject: 'Thought of you — check this out',
-    text: CORE_TEXT + '\n\n' + LINK_TEXT,
-    html: CORE_HTML + LINK_HTML
+// One entry per character: the friend-facing party invite, addressed to
+// the invitee rather than the player ("you're invited" rather than
+// "invite someone"), each referencing that character's own dream.
+const PARTY_TEMPLATES = {
+  fran: {
+    subject: "You're invited to the party!",
+    text: "Fran's throwing a party to celebrate her dream — recording a " +
+      "bubblegum rap album, music video included. You're invited to " +
+      'help her get there.\n\nCome join in: ' + SITE_URL,
+    html: '<p>Fran&rsquo;s throwing a party to celebrate her dream &mdash; ' +
+      'recording a bubblegum rap album, music video included. ' +
+      'You&rsquo;re invited to help her get there.</p>' +
+      '<p><a href="' + SITE_URL + '">' + SITE_URL + '</a></p>'
   },
-  16: {
-    count: 1,
-    subject: 'Thought of you — check this out',
-    text: CORE_TEXT + '\n\n' + GAME_LINE_TEXT + '\n\n' + LINK_TEXT,
-    html: CORE_HTML + GAME_LINE_HTML + LINK_HTML
+  jeremy: {
+    subject: "You're invited to the party!",
+    text: "Jeremy's throwing a party to celebrate his dream — a ride-along " +
+      "with the cops of Cops. You're invited to help him get there." +
+      '\n\nCome join in: ' + SITE_URL,
+    html: '<p>Jeremy&rsquo;s throwing a party to celebrate his dream &mdash; a ' +
+      'ride-along with the cops of Cops. You&rsquo;re invited to help him ' +
+      'get there.</p>' +
+      '<p><a href="' + SITE_URL + '">' + SITE_URL + '</a></p>'
   },
-  22: {
-    count: 1,
-    subject: 'You need to see this',
-    text: CORE_TEXT + '\n\n' + LINK_TEXT,
-    html: CORE_HTML + LINK_HTML
+  will: {
+    subject: "You're invited to the party!",
+    text: "Will's throwing a party to celebrate his dream — writing " +
+      "alongside the Star Wars universe, even the fan fiction legends. " +
+      "You're invited to help him get there.\n\nCome join in: " + SITE_URL,
+    html: '<p>Will&rsquo;s throwing a party to celebrate his dream &mdash; writing ' +
+      'alongside the Star Wars universe, even the fan fiction legends. ' +
+      'You&rsquo;re invited to help him get there.</p>' +
+      '<p><a href="' + SITE_URL + '">' + SITE_URL + '</a></p>'
   },
-  33: {
-    count: 1,
-    subject: 'Thought of you — check this out',
-    text: SEEN_TEXT + '\n\n' + LINK_TEXT,
-    html: SEEN_HTML + LINK_HTML
-  },
-  38: {
-    count: 1,
-    subject: "Guess what I'm doing",
-    text: CORE_TEXT + '\n\n' + LINK_TEXT,
-    html: CORE_HTML + LINK_HTML
+  martha: {
+    subject: "You're invited to the party!",
+    text: "Martha's throwing a party to celebrate her dream — a speaking " +
+      "tour across the US. You're invited to help her get there.\n\n" +
+      'Come join in: ' + SITE_URL,
+    html: '<p>Martha&rsquo;s throwing a party to celebrate her dream &mdash; a ' +
+      'speaking tour across the US. You&rsquo;re invited to help her get ' +
+      'there.</p>' +
+      '<p><a href="' + SITE_URL + '">' + SITE_URL + '</a></p>'
   }
 };
 
@@ -187,20 +179,25 @@ async function sendInvite(request, env) {
     return new Response('Method not allowed', { status: 405 });
   }
 
-  let square, emails;
+  let square, emails, character;
   try {
     const body = await request.json();
     square = parseInt(body.square, 10);
     emails = Array.isArray(body.emails) ? body.emails : [];
+    character = typeof body.character === 'string' ? body.character.trim().toLowerCase() : '';
   } catch (err) {
     return jsonResponse({ success: false, error: 'Invalid request body' }, 400);
   }
 
-  const template = INVITE_TEMPLATES[square];
-  if (!template) {
+  const expectedCount = EMAIL_INVITE_SQUARES[square];
+  if (!expectedCount) {
     return jsonResponse({ success: false, error: 'Unknown square' }, 400);
   }
-  if (emails.length !== template.count) {
+  const template = PARTY_TEMPLATES[character];
+  if (!template) {
+    return jsonResponse({ success: false, error: 'Unknown character' }, 400);
+  }
+  if (emails.length !== expectedCount) {
     return jsonResponse({ success: false, error: 'Wrong number of email addresses' }, 400);
   }
 

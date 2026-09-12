@@ -404,9 +404,9 @@
   .reveal-action:hover{background:#FFC15A;}
   .reveal-action[hidden]{display:none;}
 
-  /* INVITE FORM — swapped in for reveal-action on the 5 email-invite
-     Connection squares. Same card, same header (icon/tag/title/text),
-     just a different bottom section. */
+  /* INVITE FORM — swapped in for reveal-action on the 3 "party" email-
+     invite Connection squares (22, 33, 38). Same card, same header
+     (icon/tag/title/text), just a different bottom section. */
   .invite-form[hidden]{display:none;}
   .invite-fields{
     display:flex; flex-direction:column; gap:8px;
@@ -428,6 +428,15 @@
   }
   .invite-submit:hover{background:#FFC15A;}
   .invite-submit:disabled{opacity:0.7; cursor:not-allowed;}
+  /* Skip is deliberately understated (plain text link, not a button)
+     next to the real "Invite to the Party" action — a real choice, not
+     an equally-weighted alternative, since it comes with a setback. */
+  .invite-skip{
+    display:block; margin:10px auto 0;
+    background:none; border:0; color:var(--ink-soft);
+    font-size:13px; text-decoration:underline; cursor:pointer;
+  }
+  .invite-skip:disabled{opacity:0.6; cursor:not-allowed;}
   .invite-message{margin-top:10px; font-size:13.5px; font-weight:500;}
   .invite-message[hidden]{display:none;}
   .invite-message.error{color:var(--setback);}
@@ -782,14 +791,18 @@
           <p class="reveal-text" id="reveal-text"></p>
           <button type="button" class="reveal-action" id="reveal-action">Continue</button>
           <!--
-            Invite form — swapped in for reveal-action on the 5 direct-
-            contact Connection squares (4, 16, 22, 33, 38). Sends a real
-            email via /api/send-invite; only resolves the square's own
-            advance value and closes the card once that send succeeds.
+            Invite form — swapped in for reveal-action on the 3 "party"
+            Connection squares (22, 33, 38 — 4 and 16 downgraded back to
+            the plain honor-system Confirm button above, same as 11/27/
+            43). Sends a real email via /api/send-invite; only resolves
+            the square's own advance value and closes the card once that
+            send succeeds. Skip is the alternative: no email required,
+            but it's a real setback (moves back), not a free pass.
           -->
           <form class="invite-form" id="invite-form" hidden>
             <div class="invite-fields" id="invite-fields"></div>
-            <button type="submit" class="invite-submit" id="invite-submit">Send</button>
+            <button type="submit" class="invite-submit" id="invite-submit">Invite to the Party</button>
+            <button type="button" class="invite-skip" id="invite-skip">Skip</button>
             <p class="invite-message" id="invite-message" hidden></p>
           </form>
         </div>
@@ -1546,7 +1559,7 @@
     var overlay = document.getElementById('reveal-overlay');
 
     // Defensive reset in case the invite form was left showing from a
-    // prior card on one of the 5 email-invite squares.
+    // prior card on one of the 3 email-invite squares.
     action.hidden = false;
     document.getElementById('invite-form').hidden = true;
 
@@ -1585,19 +1598,30 @@
   }
 
   // ---------- Invite form — the same reveal-card header (icon/tag/
-  // title/text), but with real email fields + a Send button standing
-  // in for the usual Continue/Confirm button, for the 5 direct-contact
-  // Connection squares (4, 16, 22, 33, 38). Squares 11, 27, and 43 are
-  // untouched and keep the plain honor-system Confirm button above.
-  // Only resolves the square's own advance value and closes once
-  // /api/send-invite actually confirms the send. ----------
+  // title/text), but with a real email field + "Invite to the Party" /
+  // Skip standing in for the usual Continue/Confirm button, for the 3
+  // "party" Connection squares (22, 33, 38). Squares 4, 16, 11, 27, and
+  // 43 all stay on the plain honor-system Confirm button above. Only
+  // resolves the square's own advance value once /api/send-invite
+  // actually confirms the send; Skip is the alternative, and comes
+  // with a real setback (move back) rather than a free pass. ----------
   var EMAIL_INVITE_SQUARES = {
-    4: 3,
-    16: 1,
     22: 1,
     33: 1,
     38: 1
   };
+
+  // The card's own on-screen framing — each character's dream recast as
+  // a party the player is inviting a friend to. Shown instead of the
+  // square's own generic flavor text on these 3 squares.
+  var PARTY_INTRO = {
+    fran: "Fran's throwing a party to celebrate her dream — recording a bubblegum rap album, music video included. Invite someone to the party and help her get there.",
+    jeremy: "Jeremy's throwing a party to celebrate his dream — a ride-along with the cops of Cops. Invite someone to the party and help him get there.",
+    will: "Will's throwing a party to celebrate his dream — writing alongside the Star Wars universe, even the fan fiction legends. Invite someone to the party and help him get there.",
+    martha: "Martha's throwing a party to celebrate her dream — a speaking tour across the US. Invite someone to the party and help her get there."
+  };
+
+  var SKIP_SETBACK = 2; // squares moved back on Skip, same small-setback scale as the board's own Setback squares
 
   function showInviteCard(outcome, characterKey, onDone) {
     var square = outcome.landedSquare;
@@ -1611,20 +1635,22 @@
     var form = document.getElementById('invite-form');
     var fields = document.getElementById('invite-fields');
     var submitBtn = document.getElementById('invite-submit');
+    var skipBtn = document.getElementById('invite-skip');
     var message = document.getElementById('invite-message');
 
     icon.innerHTML = '<img src="' + iconSrcForSquare(outcome.landedSquare) + '" alt="">';
     tag.className = 'reveal-tag type-' + (outcome.landedType || 'connection');
     tag.textContent = TYPE_LABEL[outcome.landedType] || '';
     title.textContent = outcome.landedLabel || ('Square ' + outcome.landedSquare);
-    text.textContent = outcome.landedText || '';
+    text.textContent = PARTY_INTRO[characterKey] || outcome.landedText || '';
     positionRevealCard(outcome.landedSquare);
 
     action.hidden = true;
     form.hidden = false;
     message.hidden = true;
     submitBtn.disabled = false;
-    submitBtn.textContent = 'Send';
+    submitBtn.textContent = 'Invite to the Party';
+    skipBtn.disabled = false;
 
     fields.innerHTML = '';
     var inputs = [];
@@ -1648,7 +1674,8 @@
 
     function showError(msg) {
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Send';
+      submitBtn.textContent = 'Invite to the Party';
+      skipBtn.disabled = false;
       message.hidden = false;
       message.className = 'invite-message error';
       message.textContent = msg;
@@ -1666,12 +1693,13 @@
 
       submitBtn.disabled = true;
       submitBtn.textContent = 'Sending…';
+      skipBtn.disabled = true;
       message.hidden = true;
 
       fetch('/api/send-invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ square: square, emails: emails })
+        body: JSON.stringify({ square: square, emails: emails, character: characterKey })
       })
         .then(function (res) {
           return res.json().catch(function () { return {}; }).then(function (data) {
@@ -1690,12 +1718,26 @@
         });
     };
 
+    // Skip: no email required, but it's a real setback, not a free
+    // pass — moves the player back a couple squares from where they
+    // landed instead of applying this square's own advance. Mutating
+    // outcome.finalSquare here (rather than resolving it separately)
+    // lets the existing chain-hop animation in rollForTurn/
+    // completeOpeningMove pick it up automatically, same trick used for
+    // the near-miss and bonus-Roomie mechanics.
+    skipBtn.onclick = function () {
+      if (closed) return;
+      outcome.finalSquare = Math.max(1, outcome.landedSquare - SKIP_SETBACK);
+      closeAndDone();
+    };
+
     overlay.classList.add('open');
   }
 
-  // Picks the invite-card for the 5 email-invite squares, the plain
-  // reveal-card for everything else (including the 3 connection squares
-  // that stay on the old honor-system Confirm button).
+  // Picks the invite-card for the 3 "party" email-invite squares (22,
+  // 33, 38), the plain reveal-card for everything else — including
+  // Squares 4 and 16, downgraded back to the honor-system Confirm
+  // button alongside 11, 27, and 43.
   function showMainCard(outcome, characterKey, onDone) {
     if (EMAIL_INVITE_SQUARES[outcome.landedSquare]) {
       showInviteCard(outcome, characterKey, onDone);
