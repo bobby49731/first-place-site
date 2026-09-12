@@ -602,6 +602,35 @@
     50%{transform:translate(-50%, -50%) translateY(-4px); box-shadow:0 10px 22px rgba(42,32,51,0.32), 0 0 18px 6px rgba(255,199,74,0.55);}
   }
 
+  /* THE DOUBT'S DEFEAT — a one-time ceremonial moment at the Finish
+     square: a black hole blooms behind his token and pulls him in as he
+     spins and shrinks away. Built entirely in JS/CSS (the hole is a
+     plain radial-gradient circle, injected and removed by
+     playDoubtDefeatAnimation()), positioned at wherever his token
+     currently sits. */
+  .doubt-blackhole{
+    position:absolute;
+    width:16%; aspect-ratio:1;
+    border-radius:50%;
+    background:radial-gradient(circle, #000 0%, rgba(10,8,14,0.92) 45%, rgba(10,8,14,0) 74%);
+    z-index:4;
+    pointer-events:none;
+    opacity:0;
+    transform:translate(-50%, 20%) scale(0);
+  }
+  .doubt-blackhole.open{animation:blackhole-bloom 1.3s cubic-bezier(.55,0,.3,1) forwards;}
+  @keyframes blackhole-bloom{
+    0%{opacity:0; transform:translate(-50%, 20%) scale(0);}
+    35%{opacity:1; transform:translate(-50%, 20%) scale(1.7);}
+    100%{opacity:0; transform:translate(-50%, 20%) scale(0);}
+  }
+  .doubt-token.defeated{animation:doubt-defeat 1.3s cubic-bezier(.55,0,.3,1) forwards;}
+  @keyframes doubt-defeat{
+    0%{transform:translateX(-50%) rotate(0deg) scale(1); opacity:1;}
+    70%{transform:translateX(-50%) rotate(680deg) scale(0.3); opacity:0.9;}
+    100%{transform:translateX(-50%) rotate(940deg) scale(0); opacity:0;}
+  }
+
   /* CHARACTER SELECT headline — bolder and darker than the default
      .game-sub (which stays soft/muted for the gate and board screens). */
   .select-sub{font-weight:800; color:var(--ink);}
@@ -832,17 +861,17 @@
           <p class="reveal-text" id="reveal-text"></p>
           <button type="button" class="reveal-action" id="reveal-action">Continue</button>
           <!--
-            Invite form — swapped in for reveal-action on the 3 "party"
-            Connection squares (22, 33, 38 — 4 and 16 downgraded back to
-            the plain honor-system Confirm button above, same as 11/27/
-            43). Sends a real email via /api/send-invite; only resolves
-            the square's own advance value and closes the card once that
-            send succeeds. Skip is the alternative: no email required,
-            but it's a real setback (moves back), not a free pass.
+            Connection form — swapped in for reveal-action on all 8
+            Connection squares (4, 11, 16, 22, 27, 33, 38, 43). Sends a
+            real email via /api/submit-contact once a valid email is
+            entered; only resolves the square's own advance value and
+            closes the card once that succeeds. Skip — or submitting
+            nothing — always means the same thing everywhere: stay put,
+            no advance, no penalty.
           -->
           <form class="invite-form" id="invite-form" hidden>
             <div class="invite-fields" id="invite-fields"></div>
-            <button type="submit" class="invite-submit" id="invite-submit">Invite to the Party</button>
+            <button type="submit" class="invite-submit" id="invite-submit">Send Invite</button>
             <button type="button" class="invite-skip" id="invite-skip">Skip</button>
             <p class="invite-message" id="invite-message" hidden></p>
           </form>
@@ -1085,6 +1114,114 @@
         onDone();
       }
     });
+  }
+
+  // ---------- Corner bonus Roomie — every one of the 4 corner squares
+  // (1 START, 12 CHECKPOINT, 23 ROOMIE GATE, 34 FINAL STRETCH) awards a
+  // guaranteed Roomie on top of whatever else that corner already does,
+  // shown as its own follow-up card right after the corner's own. No
+  // near-miss chance here (unlike the 4 dedicated collectible squares)
+  // and no position change either way — corners are rare enough (4 of
+  // 44 squares) that a sure thing is the point, and stacking a bonus
+  // hop on top of a corner's own effect (e.g. the Roomie Gate's bounce-
+  // back) would just be confusing. ----------
+  function maybeCornerRoomie(outcome, characterKey, onDone) {
+    if (outcome.landedType !== 'corner') { onDone(); return; }
+    var square = outcome.finalSquare;
+    var awarded = awardRandomRoomie();
+    var bonusOutcome = {
+      landedSquare: square,
+      landedType: 'collectible',
+      landedLabel: 'Bonus Roomie!',
+      finalSquare: square,
+      loseTurn: false,
+      landedText: awarded
+        ? 'Landing here comes with a little something extra — you picked up ' + awarded.name + '.'
+        : "The shelf's already full — all 16 Roomies are yours!",
+      landedRoomie: awarded
+    };
+    showRevealCard(bonusOutcome, characterKey, onDone);
+  }
+
+  // ---------- The Dream, Realized — reaching Square 44 awards 2
+  // Roomies (not the usual 1) and retires The Doubt for good with a
+  // ceremonial defeat animation, in place of its normal per-turn move.
+  // ----------
+  function awardFinishRoomies(characterKey, onDone) {
+    function awardOne(remaining, cb) {
+      if (remaining <= 0) { cb(); return; }
+      var awarded = awardRandomRoomie();
+      var bonusOutcome = {
+        landedSquare: 44,
+        landedType: 'collectible',
+        landedLabel: 'Dream Roomie!',
+        finalSquare: 44,
+        loseTurn: false,
+        landedText: awarded
+          ? 'One last gift for the road — you picked up ' + awarded.name + '.'
+          : "The shelf's already full — all 16 Roomies are yours!",
+        landedRoomie: awarded
+      };
+      showRevealCard(bonusOutcome, characterKey, function () {
+        awardOne(remaining - 1, cb);
+      });
+    }
+    awardOne(2, onDone);
+  }
+
+  // A black hole blooms behind The Doubt's own token as he spins and
+  // shrinks away into it — a one-time ceremonial moment, not something
+  // that needs undoing, so both the hole and the token are simply left
+  // hidden/removed afterward rather than reset.
+  function playDoubtDefeatAnimation(onDone) {
+    var token = document.getElementById('doubt-token');
+    var popper = document.getElementById('doubt-popper');
+    if (token.hidden) { onDone(); return; }
+
+    var hole = document.createElement('div');
+    hole.className = 'doubt-blackhole';
+    hole.style.left = token.style.left;
+    hole.style.bottom = token.style.bottom;
+    token.parentNode.insertBefore(hole, token);
+    popper.hidden = true;
+
+    void hole.offsetWidth; // restart-safe, matches the pattern used elsewhere for repeatable CSS animations
+    hole.classList.add('open');
+    token.classList.add('defeated');
+
+    window.setTimeout(function () {
+      token.hidden = true;
+      if (hole.parentNode) hole.parentNode.removeChild(hole);
+      onDone();
+    }, 1300);
+  }
+
+  // Shared tail end of every turn's landing resolution, used by the
+  // opening move, every normal turn, and the debug tool alike: reaching
+  // the Finish replaces the usual bonus-Roomie-chance + Doubt-turn with
+  // the 2-Roomie award + Doubt's defeat animation; every other landing
+  // keeps the normal small bonus-Roomie chance and The Doubt's own
+  // paired turn. Also where a "Lose a turn" landing's flag gets
+  // persisted so it actually holds up the player's NEXT roll — see the
+  // dice-dome click handler.
+  function afterLandingEffect(outcome, characterKey, doubtRoll, onDone) {
+    if (outcome.loseTurn) {
+      localStorage.setItem('gameLoseTurn', 'true');
+    }
+    if (outcome.finalSquare >= 44) {
+      // The finish branch skips resolveDoubtTurn (which is normally the
+      // only place gameSquare gets persisted) entirely, so it has to do
+      // that bookkeeping itself — otherwise reaching Square 44 would
+      // never actually stick across a reload.
+      localStorage.setItem('gameSquare', String(outcome.finalSquare));
+      awardFinishRoomies(characterKey, function () {
+        playDoubtDefeatAnimation(onDone);
+      });
+    } else {
+      maybeBonusRoomie(outcome, characterKey, function () {
+        resolveDoubtTurn(outcome, doubtRoll, onDone);
+      });
+    }
   }
 
   // ---------- First-time Roomie explainer — the very first time ANY
@@ -1448,6 +1585,27 @@
   document.getElementById('dice-dome').addEventListener('click', function () {
     var dome = this;
     if (dome.disabled) return;
+
+    // "Lose a turn" (Squares 3, 13, 31, 42) skips exactly the next
+    // roll: consume the flag and stop here, without rolling either die
+    // or moving either token — this whole turn is forfeit, not just a
+    // smaller move.
+    if (localStorage.getItem('gameLoseTurn') === 'true') {
+      localStorage.removeItem('gameLoseTurn');
+      dome.disabled = true;
+      hideRollPrompt();
+      document.getElementById('pacing-note').hidden = true;
+      var skipEl = document.getElementById('roll-result');
+      skipEl.textContent = 'Lose a turn — this roll is skipped.';
+      skipEl.hidden = false;
+      window.setTimeout(function () {
+        skipEl.hidden = true;
+        dome.disabled = false;
+        showRollPrompt();
+      }, 1400);
+      return;
+    }
+
     dome.disabled = true;
     hideRollPrompt();
     document.getElementById('pacing-note').hidden = true;
@@ -1652,183 +1810,75 @@
     overlay.classList.add('open');
   }
 
-  // ---------- Invite form — the same reveal-card header (icon/tag/
-  // title/text), but with a real email field + "Invite to the Party" /
-  // Skip standing in for the usual Continue/Confirm button, for the 3
-  // single-contact "party" Connection squares (22, 33, 38). Squares 4
-  // and 11 are pure narrative now (plain Confirm, no action). Squares
-  // 16, 27, and 43 get the separate 3-contact form below
-  // (showMultiContactCard). Only resolves the square's own advance
-  // value once /api/send-invite actually confirms the send; Skip is
-  // the alternative, and comes with a real setback (move back) rather
-  // than a free pass. ----------
-  var EMAIL_INVITE_SQUARES = {
-    22: 1,
-    33: 1,
-    38: 1
+  // ---------- Connection card — ALL 8 Connection squares (4, 11, 16,
+  // 22, 27, 33, 38, 43) now share one base pattern: the usual reveal-
+  // card header (icon/tag/title/text), a friend's contact info below
+  // it, and a Skip option. Skipping — or submitting a form with nothing
+  // in it — always means the same thing everywhere: no advance, stay
+  // exactly on the square landed on (resolveLanding already baked this
+  // square's own Advance N into outcome.finalSquare by default;
+  // reverting it back to landedSquare is all "stay put" needs). Only a
+  // valid email actually triggers a real send (POST /api/submit-
+  // contact); a phone number is just captured for future SMS use.
+  //
+  // Field shape varies per square (CONNECTION_SQUARES below): most show
+  // a full Name/Email/Phone trio ('trio'); Squares 16 and 27 simplify
+  // that down to Name + one merged field accepting either an email OR a
+  // phone number, not both at once ('flex' — whichever format it looks
+  // like decides which the server sees); Square 43 drops phone
+  // entirely, Name + Email only ('email'). ----------
+  var CONNECTION_SQUARES = {
+    4: 'trio',
+    11: 'trio',
+    16: 'flex',
+    22: 'trio',
+    27: 'flex',
+    33: 'trio',
+    38: 'trio',
+    43: 'email'
   };
 
   // The card's own on-screen framing — each character's dream recast as
-  // a party the player is inviting a friend to. Shown instead of the
-  // square's own generic flavor text on these 3 squares.
+  // a party the player is inviting a friend to, shown on Squares 22,
+  // 33, and 38 instead of their generic flavor text.
   var PARTY_INTRO = {
     fran: "Fran's throwing a party to celebrate her dream — recording a bubblegum rap album, music video included. Invite someone to the party and help her get there.",
     jeremy: "Jeremy's throwing a party to celebrate his dream — a ride-along with the cops of Cops. Invite someone to the party and help him get there.",
     will: "Will's throwing a party to celebrate his dream — writing alongside the Star Wars universe, even the fan fiction legends. Invite someone to the party and help him get there.",
     martha: "Martha's throwing a party to celebrate her dream — a speaking tour across the US. Invite someone to the party and help her get there."
   };
-
-  var SKIP_SETBACK = 2; // squares moved back on Skip, same small-setback scale as the board's own Setback squares
-
-  function showInviteCard(outcome, characterKey, onDone) {
-    var square = outcome.landedSquare;
-    var count = EMAIL_INVITE_SQUARES[square] || 1;
-    var icon = document.getElementById('reveal-icon');
-    var tag = document.getElementById('reveal-tag');
-    var title = document.getElementById('reveal-title');
-    var text = document.getElementById('reveal-text');
-    var action = document.getElementById('reveal-action');
-    var overlay = document.getElementById('reveal-overlay');
-    var form = document.getElementById('invite-form');
-    var fields = document.getElementById('invite-fields');
-    var submitBtn = document.getElementById('invite-submit');
-    var skipBtn = document.getElementById('invite-skip');
-    var message = document.getElementById('invite-message');
-
-    icon.innerHTML = '<img src="' + iconSrcForSquare(outcome.landedSquare) + '" alt="">';
-    tag.className = 'reveal-tag type-' + (outcome.landedType || 'connection');
-    tag.textContent = TYPE_LABEL[outcome.landedType] || '';
-    title.textContent = outcome.landedLabel || ('Square ' + outcome.landedSquare);
-    text.textContent = PARTY_INTRO[characterKey] || outcome.landedText || '';
-    positionRevealCard(outcome.landedSquare);
-
-    action.hidden = true;
-    form.hidden = false;
-    message.hidden = true;
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Invite to the Party';
-    skipBtn.disabled = false;
-
-    fields.innerHTML = '';
-    var inputs = [];
-    for (var i = 0; i < count; i++) {
-      var input = document.createElement('input');
-      input.type = 'email';
-      input.className = 'invite-input';
-      input.placeholder = count > 1 ? ("Friend " + (i + 1) + "'s email") : "Friend's email";
-      input.required = true;
-      fields.appendChild(input);
-      inputs.push(input);
-    }
-
-    var closed = false;
-    function closeAndDone() {
-      if (closed) return;
-      closed = true;
-      overlay.classList.remove('open');
-      window.setTimeout(onDone, 260);
-    }
-
-    function showError(msg) {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Invite to the Party';
-      skipBtn.disabled = false;
-      message.hidden = false;
-      message.className = 'invite-message error';
-      message.textContent = msg;
-    }
-
-    form.onsubmit = function (e) {
-      e.preventDefault();
-      var emails = inputs.map(function (inp) { return inp.value.trim(); });
-      var allValid = emails.every(function (em) { return EMAIL_PATTERN.test(em); });
-      inputs.forEach(function (inp) { inp.classList.toggle('invalid', !EMAIL_PATTERN.test(inp.value.trim())); });
-      if (!allValid) {
-        showError(count > 1 ? 'Please enter a valid email for each friend.' : 'Please enter a valid email.');
-        return;
-      }
-
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Sending…';
-      skipBtn.disabled = true;
-      message.hidden = true;
-
-      fetch('/api/send-invite', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ square: square, emails: emails, character: characterKey })
-      })
-        .then(function (res) {
-          return res.json().catch(function () { return {}; }).then(function (data) {
-            return { ok: res.ok, data: data };
-          });
-        })
-        .then(function (result) {
-          if (result.ok && result.data && result.data.success) {
-            closeAndDone();
-          } else {
-            showError("Couldn't send right now — please try again.");
-          }
-        })
-        .catch(function () {
-          showError("Couldn't send right now — please try again.");
-        });
-    };
-
-    // Skip: no email required, but it's a real setback, not a free
-    // pass — moves the player back a couple squares from where they
-    // landed instead of applying this square's own advance. Mutating
-    // outcome.finalSquare here (rather than resolving it separately)
-    // lets the existing chain-hop animation in rollForTurn/
-    // completeOpeningMove pick it up automatically, same trick used for
-    // the near-miss and bonus-Roomie mechanics.
-    skipBtn.onclick = function () {
-      if (closed) return;
-      outcome.finalSquare = Math.max(1, outcome.landedSquare - SKIP_SETBACK);
-      closeAndDone();
-    };
-
-    overlay.classList.add('open');
-  }
-
-  // ---------- 3-contact form — Squares 16, 27, and 43. Same card shell
-  // as showInviteCard, but each of the 3 fields is a
-  // Name/Email/Phone trio (.invite-contact-group) instead of a lone
-  // email input. A contact "counts" with a name plus either a valid
-  // email or a phone number; only entries with a valid email actually
-  // trigger a Resend send (via /api/submit-contacts, mirroring
-  // /api/send-invite's template-by-character pattern for Square 27),
-  // phone numbers are just captured server-side for future SMS use.
-  // Skip — or submitting nothing that counts — has NO backward
-  // penalty, unlike the party squares' Skip: the player simply stays
-  // on the square they landed on rather than picking up its Advance 3. ----------
-  var MULTI_CONTACT_SQUARES = {
-    16: 3,
-    27: 3,
-    43: 3
-  };
-
-  // Squares 16 and 43 keep their existing framing regardless of
-  // character; Square 27 is reframed per character below.
-  var MULTI_CONTACT_INTRO = {
-    16: 'Invite someone to pick their character.',
-    43: 'Share your board one more time.'
-  };
+  // Square 27's own "5-star boost" framing, per character.
   var FRIEND_BOOST_INTRO = {
     fran: "Fran's journey is halfway there — she could use that 5-star boost. Email your friends.",
     jeremy: "Jeremy's journey is halfway there — he could use that 5-star boost. Email your friends.",
     will: "Will's journey is halfway there — he could use that 5-star boost. Email your friends.",
     martha: "Martha's journey is halfway there — she could use that 5-star boost. Email your friends."
   };
+  // Square 43's own "shout it from the rooftops" framing, per character
+  // and that character's own actual dream.
+  var SHOUT_INTRO = {
+    fran: "Shout it from the rooftops, Fran's album is dropping soon.",
+    jeremy: "Shout it from the rooftops, Jeremy's ride-along is happening soon.",
+    will: "Shout it from the rooftops, Will's Star Wars pages are dropping soon.",
+    martha: "Shout it from the rooftops, Martha's tour is dropping soon."
+  };
+  // Square 16's framing is static (not character-keyed). Squares 4 and
+  // 11 use their own BOARD_SQUARES text (already square-specific
+  // headline copy — the "encouraging letter" / "met a love interest"
+  // framing) via the outcome.landedText fallback below.
+  var INVITE_TO_PICK_TEXT = 'Invite someone to pick their character.';
 
-  function multiContactIntroText(square, characterKey) {
-    if (square === 27) return FRIEND_BOOST_INTRO[characterKey] || 'Email your friends.';
-    return MULTI_CONTACT_INTRO[square] || '';
+  function connectionIntroText(square, characterKey, outcome) {
+    if (square === 22 || square === 33 || square === 38) return PARTY_INTRO[characterKey] || outcome.landedText || '';
+    if (square === 27) return FRIEND_BOOST_INTRO[characterKey] || outcome.landedText || '';
+    if (square === 43) return SHOUT_INTRO[characterKey] || outcome.landedText || '';
+    if (square === 16) return INVITE_TO_PICK_TEXT;
+    return outcome.landedText || ''; // 4, 11: their own headline copy
   }
 
-  function showMultiContactCard(outcome, characterKey, onDone) {
+  function showConnectionCard(outcome, characterKey, onDone) {
     var square = outcome.landedSquare;
-    var count = MULTI_CONTACT_SQUARES[square] || 3;
+    var spec = CONNECTION_SQUARES[square] || 'trio';
     var icon = document.getElementById('reveal-icon');
     var tag = document.getElementById('reveal-tag');
     var title = document.getElementById('reveal-title');
@@ -1841,46 +1891,52 @@
     var skipBtn = document.getElementById('invite-skip');
     var message = document.getElementById('invite-message');
 
-    icon.innerHTML = '<img src="' + iconSrcForSquare(outcome.landedSquare) + '" alt="">';
+    icon.innerHTML = '<img src="' + iconSrcForSquare(square) + '" alt="">';
     tag.className = 'reveal-tag type-' + (outcome.landedType || 'connection');
     tag.textContent = TYPE_LABEL[outcome.landedType] || '';
-    title.textContent = outcome.landedLabel || ('Square ' + outcome.landedSquare);
-    text.textContent = multiContactIntroText(square, characterKey);
-    positionRevealCard(outcome.landedSquare);
+    title.textContent = outcome.landedLabel || ('Square ' + square);
+    text.textContent = connectionIntroText(square, characterKey, outcome);
+    positionRevealCard(square);
 
     action.hidden = true;
     form.hidden = false;
     message.hidden = true;
     submitBtn.disabled = false;
-    submitBtn.textContent = 'Send Invites';
+    submitBtn.textContent = 'Send Invite';
     skipBtn.disabled = false;
 
     fields.innerHTML = '';
-    var groups = [];
-    for (var i = 0; i < count; i++) {
-      var group = document.createElement('div');
-      group.className = 'invite-contact-group';
+    var nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.className = 'invite-input';
+    nameInput.placeholder = "Friend's name";
+    fields.appendChild(nameInput);
 
-      var nameInput = document.createElement('input');
-      nameInput.type = 'text';
-      nameInput.className = 'invite-input';
-      nameInput.placeholder = 'Name';
-
-      var emailInput = document.createElement('input');
+    var emailInput = null, phoneInput = null, flexInput = null;
+    if (spec === 'trio') {
+      emailInput = document.createElement('input');
       emailInput.type = 'email';
       emailInput.className = 'invite-input';
       emailInput.placeholder = 'Email';
+      fields.appendChild(emailInput);
 
-      var phoneInput = document.createElement('input');
+      phoneInput = document.createElement('input');
       phoneInput.type = 'tel';
       phoneInput.className = 'invite-input';
       phoneInput.placeholder = 'Phone';
-
-      group.appendChild(nameInput);
-      group.appendChild(emailInput);
-      group.appendChild(phoneInput);
-      fields.appendChild(group);
-      groups.push({ name: nameInput, email: emailInput, phone: phoneInput });
+      fields.appendChild(phoneInput);
+    } else if (spec === 'email') {
+      emailInput = document.createElement('input');
+      emailInput.type = 'email';
+      emailInput.className = 'invite-input';
+      emailInput.placeholder = 'Email';
+      fields.appendChild(emailInput);
+    } else { // 'flex'
+      flexInput = document.createElement('input');
+      flexInput.type = 'text';
+      flexInput.className = 'invite-input';
+      flexInput.placeholder = 'Email or phone';
+      fields.appendChild(flexInput);
     }
 
     var closed = false;
@@ -1891,11 +1947,9 @@
       window.setTimeout(onDone, 260);
     }
 
-    // No backward penalty here — just don't pick up this square's own
-    // Advance 3, which resolveLanding already baked into
-    // outcome.finalSquare by default. Reverting it back to the landed
-    // square is enough; no chain-hop needed since that's exactly where
-    // the token already visually is.
+    // Stay exactly where landed — no advance, no backward penalty.
+    // Used for both an explicit Skip and a submit with nothing (or
+    // nothing qualifying) in it, everywhere across all 8 squares.
     function stayPutAndDone() {
       outcome.finalSquare = outcome.landedSquare;
       closeAndDone();
@@ -1903,7 +1957,7 @@
 
     function showError(msg) {
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Send Invites';
+      submitBtn.textContent = 'Send Invite';
       skipBtn.disabled = false;
       message.hidden = false;
       message.className = 'invite-message error';
@@ -1912,15 +1966,19 @@
 
     form.onsubmit = function (e) {
       e.preventDefault();
-      var contacts = groups.map(function (g) {
-        return {
-          name: g.name.value.trim(),
-          email: g.email.value.trim(),
-          phone: g.phone.value.trim()
-        };
-      });
-      var anyEntered = contacts.some(function (c) { return c.name || c.email || c.phone; });
-      if (!anyEntered) {
+      var name = nameInput.value.trim();
+      var email = '', phone = '';
+      if (spec === 'trio') {
+        email = emailInput.value.trim();
+        phone = phoneInput.value.trim();
+      } else if (spec === 'email') {
+        email = emailInput.value.trim();
+      } else {
+        var flexVal = flexInput.value.trim();
+        if (EMAIL_PATTERN.test(flexVal)) { email = flexVal; } else { phone = flexVal; }
+      }
+
+      if (!name && !email && !phone) {
         stayPutAndDone();
         return;
       }
@@ -1930,10 +1988,10 @@
       skipBtn.disabled = true;
       message.hidden = true;
 
-      fetch('/api/submit-contacts', {
+      fetch('/api/submit-contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ square: square, character: characterKey, contacts: contacts })
+        body: JSON.stringify({ square: square, character: characterKey, contact: { name: name, email: email, phone: phone } })
       })
         .then(function (res) {
           return res.json().catch(function () { return {}; }).then(function (data) {
@@ -1963,15 +2021,12 @@
     overlay.classList.add('open');
   }
 
-  // Picks the single-contact invite-card for the 3 "party" squares (22,
-  // 33, 38), the 3-contact form for Squares 16, 27, and 43, and the
-  // plain reveal-card (honor-system Confirm) for everything else —
-  // including Squares 4 and 11, now pure narrative.
+  // Routes any of the 8 Connection squares to the shared contact-form
+  // card; every other square (milestone, setback, story, corner,
+  // collectible, finish, intro) gets the plain reveal-card.
   function showMainCard(outcome, characterKey, onDone) {
-    if (EMAIL_INVITE_SQUARES[outcome.landedSquare]) {
-      showInviteCard(outcome, characterKey, onDone);
-    } else if (MULTI_CONTACT_SQUARES[outcome.landedSquare]) {
-      showMultiContactCard(outcome, characterKey, onDone);
+    if (CONNECTION_SQUARES[outcome.landedSquare]) {
+      showConnectionCard(outcome, characterKey, onDone);
     } else {
       showRevealCard(outcome, characterKey, onDone);
     }
@@ -2040,7 +2095,12 @@
     var response = document.getElementById('doubt-response');
 
     document.getElementById('doubt-voice-text').textContent = '“' + DOUBT_LINES[idx] + '”';
-    positionFloatingAboveSquare(voice, doubtSquare, 9);
+    // Lifted noticeably higher than the player's own response button
+    // below (liftPct 9) — roughly a full bubble-height of clearance —
+    // so the two never visually collide even in the tightest realistic
+    // case (The Doubt one square behind the player — as close as the
+    // catch rule ever allows two DIFFERENT squares to sit).
+    positionFloatingAboveSquare(voice, doubtSquare, 30);
     voice.hidden = false;
     void voice.offsetWidth; // restart the pop-in if it's showing again quickly
     voice.classList.add('open');
@@ -2200,28 +2260,35 @@
     window.setTimeout(function () {
       placeToken(1); // staging -> Square 1
       window.setTimeout(function () {
-        placeToken(rolledSquare); // the roll itself
-        window.setTimeout(function () {
-          maybeShowRoomieIntro(outcome, key, function () {
-            showMainCard(outcome, key, function () {
-              var afterEffect = function () {
-                maybeBonusRoomie(outcome, key, function () {
-                  resolveDoubtTurn(outcome, doubtRoll, function () {
-                    finishTurnUI();
+        // Square 1 (START) gets its own "Moving Day" card right here,
+        // on game entry, before the opening roll's own destination is
+        // even shown — same corner treatment (plus its own guaranteed
+        // bonus Roomie) as landing on any other corner square later.
+        var startOutcome = resolveLanding(1, key);
+        showMainCard(startOutcome, key, function () {
+          maybeCornerRoomie(startOutcome, key, function () {
+            placeToken(rolledSquare); // the roll itself
+            window.setTimeout(function () {
+              maybeShowRoomieIntro(outcome, key, function () {
+                showMainCard(outcome, key, function () {
+                  maybeCornerRoomie(outcome, key, function () {
+                    var afterEffect = function () {
+                      afterLandingEffect(outcome, key, doubtRoll, finishTurnUI);
+                    };
+                    if (outcome.finalSquare !== rolledSquare) {
+                      window.setTimeout(function () {
+                        placeToken(outcome.finalSquare); // that square's own effect firing
+                        window.setTimeout(afterEffect, 500);
+                      }, 200);
+                    } else {
+                      afterEffect();
+                    }
                   });
                 });
-              };
-              if (outcome.finalSquare !== rolledSquare) {
-                window.setTimeout(function () {
-                  placeToken(outcome.finalSquare); // that square's own effect firing
-                  window.setTimeout(afterEffect, 500);
-                }, 200);
-              } else {
-                afterEffect();
-              }
-            });
+              });
+            }, 500);
           });
-        }, 500);
+        });
       }, 700);
     }, 250);
   }
@@ -2255,21 +2322,19 @@
       window.setTimeout(function () {
         maybeShowRoomieIntro(outcome, key, function () {
           showMainCard(outcome, key, function () {
-            var afterEffect = function () {
-              maybeBonusRoomie(outcome, key, function () {
-                resolveDoubtTurn(outcome, doubtRoll, function () {
-                  finishTurnUI();
-                });
-              });
-            };
-            if (outcome.finalSquare !== landedSquare) {
-              window.setTimeout(function () {
-                placeToken(outcome.finalSquare);
-                window.setTimeout(afterEffect, 500);
-              }, 200);
-            } else {
-              afterEffect();
-            }
+            maybeCornerRoomie(outcome, key, function () {
+              var afterEffect = function () {
+                afterLandingEffect(outcome, key, doubtRoll, finishTurnUI);
+              };
+              if (outcome.finalSquare !== landedSquare) {
+                window.setTimeout(function () {
+                  placeToken(outcome.finalSquare);
+                  window.setTimeout(afterEffect, 500);
+                }, 200);
+              } else {
+                afterEffect();
+              }
+            });
           });
         });
       }, 500);
@@ -2402,11 +2467,14 @@
     if (alreadyFinished) { hideRollPrompt(); } else { showRollPrompt(); }
     setDieFace(1);
 
+    // Once the game's actually finished, The Doubt has already had his
+    // ceremonial defeat — he stays gone on every later visit rather
+    // than reappearing.
     positionDoubtDicePopper();
-    document.getElementById('doubt-popper').hidden = false;
+    document.getElementById('doubt-popper').hidden = alreadyFinished;
     setDoubtDieFace(1);
-    document.getElementById('doubt-token').hidden = false;
-    placeDoubtToken(getDoubtSquare());
+    document.getElementById('doubt-token').hidden = alreadyFinished;
+    if (!alreadyFinished) placeDoubtToken(getDoubtSquare());
 
     showRoomieWall();
 
@@ -2506,6 +2574,15 @@
     var squareInput = document.getElementById('debug-square-input');
     if (squareInput) squareInput.value = square;
 
+    // Always mirror real mid-game visibility (both poppers + The
+    // Doubt's own token shown) regardless of whatever square was jumped
+    // to last — e.g. jumping straight to Square 44 needs his token
+    // actually visible for its defeat animation to have anything to
+    // animate, same as it would be by then in a real game.
+    document.getElementById('dice-popper').hidden = false;
+    document.getElementById('doubt-popper').hidden = false;
+    document.getElementById('doubt-token').hidden = false;
+
     var doubtStart = (doubtSquareOverride != null) ? doubtSquareOverride : Math.max(1, square - 15);
     setDoubtSquare(doubtStart);
     placeDoubtToken(doubtStart);
@@ -2519,21 +2596,19 @@
 
     maybeShowRoomieIntro(outcome, key, function () {
       showMainCard(outcome, key, function () {
-        var afterEffect = function () {
-          maybeBonusRoomie(outcome, key, function () {
-            resolveDoubtTurn(outcome, 1, function () {
-              finishTurnUI();
-            });
-          });
-        };
-        if (outcome.finalSquare !== square) {
-          window.setTimeout(function () {
-            placeToken(outcome.finalSquare);
-            window.setTimeout(afterEffect, 500);
-          }, 200);
-        } else {
-          afterEffect();
-        }
+        maybeCornerRoomie(outcome, key, function () {
+          var afterEffect = function () {
+            afterLandingEffect(outcome, key, 1, finishTurnUI);
+          };
+          if (outcome.finalSquare !== square) {
+            window.setTimeout(function () {
+              placeToken(outcome.finalSquare);
+              window.setTimeout(afterEffect, 500);
+            }, 200);
+          } else {
+            afterEffect();
+          }
+        });
       });
     });
   }
