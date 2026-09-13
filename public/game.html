@@ -566,6 +566,24 @@
     border-left:6px solid transparent; border-right:6px solid transparent;
     border-top:6px solid #17121D;
   }
+  /* Catch-up explanation — only shown the turns his conditional catch-
+     up bonus actually fires (see CATCH_UP_GAP_THRESHOLD), so a bigger
+     move than usual reads as "here's why," not a silent inconsistency.
+     Deliberately NOT italic and NOT plum/ink-colored like his regular
+     insult line above it, so it reads as a straight explanation rather
+     than another taunt. */
+  .doubt-catchup-line{
+    display:block;
+    margin-top:6px;
+    padding-top:6px;
+    border-top:1px solid rgba(255,255,255,0.18);
+    font-style:normal;
+    font-weight:700;
+    font-family:'Baloo 2', sans-serif;
+    color:var(--gold);
+    letter-spacing:0.01em;
+  }
+  .doubt-catchup-line[hidden]{display:none;}
 
   /* THE PLAYER'S RESPONSE — a white button (not a dark quote bubble)
      hovering above the player's own token, showing the comeback line
@@ -914,6 +932,7 @@
       -->
       <div class="doubt-voice" id="doubt-voice" hidden>
         <span id="doubt-voice-text"></span>
+        <span class="doubt-catchup-line" id="doubt-catchup-line" hidden></span>
       </div>
       <button type="button" class="doubt-response" id="doubt-response" hidden></button>
     </div>
@@ -1104,7 +1123,8 @@
       landedText: awarded
         ? 'A little extra luck along the way — you picked up ' + awarded.name + '.'
         : "The shelf's already full — all 16 Roomies are yours! Bonus hop forward.",
-      landedRoomie: awarded
+      landedRoomie: awarded,
+      roomieCollected: !!awarded
     };
 
     showRevealCard(bonusOutcome, characterKey, function () {
@@ -1142,7 +1162,8 @@
       landedText: awarded
         ? 'Landing here comes with a little something extra — you picked up ' + awarded.name + '.'
         : "The shelf's already full — all 16 Roomies are yours!",
-      landedRoomie: awarded
+      landedRoomie: awarded,
+      roomieCollected: !!awarded
     };
     showRevealCard(bonusOutcome, characterKey, onDone);
   }
@@ -1164,7 +1185,8 @@
         landedText: awarded
           ? 'One last gift for the road — you picked up ' + awarded.name + '.'
           : "The shelf's already full — all 16 Roomies are yours!",
-        landedRoomie: awarded
+        landedRoomie: awarded,
+        roomieCollected: !!awarded
       };
       showRevealCard(bonusOutcome, characterKey, function () {
         awardOne(remaining - 1, cb);
@@ -1265,6 +1287,7 @@
     else if (backMatch) finalSquare = Math.max(1, square - parseInt(backMatch[1], 10));
 
     var landedRoomie = null;
+    var roomieCollected = false;
     if (sq && sq.type === 'collectible') {
       var stillAvailable = ROOMIE_POOL.filter(function (r) { return getCollectedRoomies().indexOf(r.id) === -1; });
       if (stillAvailable.length && Math.random() < ROOMIE_NEAR_MISS_CHANCE) {
@@ -1276,6 +1299,7 @@
         var awarded = awardRandomRoomie();
         if (awarded) {
           landedRoomie = awarded;
+          roomieCollected = true;
           text = 'Found it! You picked up ' + awarded.name + '.';
         } else {
           text = "The shelf's already full — all 16 Roomies are yours! Bonus hop forward.";
@@ -1299,7 +1323,8 @@
       finalSquare: finalSquare,
       loseTurn: loseTurn,
       landedText: text,
-      landedRoomie: landedRoomie
+      landedRoomie: landedRoomie,
+      roomieCollected: roomieCollected
     };
   }
 
@@ -2130,10 +2155,13 @@
     el.style.top = topPct + '%';
   }
 
-  function showDoubtVoice(onDone) {
+  var CATCH_UP_LINE_TEXT = 'The Doubt is closing the gap.';
+
+  function showDoubtVoice(catchUpFired, onDone) {
     var idx = nextDoubtLineIndex();
     var voice = document.getElementById('doubt-voice');
     var response = document.getElementById('doubt-response');
+    var catchUpLine = document.getElementById('doubt-catchup-line');
     var doubtSquare = getDoubtSquare();
     var playerSquare = parseInt(localStorage.getItem('gameSquare') || '1', 10);
     var doubtTokenHeight = document.getElementById('doubt-token').getBoundingClientRect().height;
@@ -2146,6 +2174,12 @@
     var lineHeightPx = parseFloat(window.getComputedStyle(document.getElementById('doubt-voice-text')).lineHeight) || 17.5;
 
     document.getElementById('doubt-voice-text').textContent = '“' + DOUBT_LINES[idx] + '”';
+    // Only shown the turns the catch-up bonus actually fires — set
+    // BEFORE positioning below, so the extra line's real height is
+    // already accounted for by the overlap-correction math that reads
+    // the bubble's own rendered size.
+    catchUpLine.textContent = CATCH_UP_LINE_TEXT;
+    catchUpLine.hidden = !catchUpFired;
     voice.hidden = false; // unhide first so its rendered height is measurable
     positionSpeechAboveToken(voice, doubtSquare, doubtTokenHeight, lineHeightPx, 3);
     void voice.offsetWidth; // restart the pop-in if it's showing again quickly
@@ -2266,18 +2300,28 @@
     overlay.classList.add('open');
   }
 
+  // Conditional catch-up: if he's fallen more than this many squares
+  // behind the player, his usual roll + modifier gets a temporary +1
+  // for that one turn — the old baseline creep, but only when he
+  // actually needs it to stay a credible threat, not on every turn
+  // regardless of the gap. Always shown to the player when it fires
+  // (see the catch-up line in showDoubtVoice) rather than left silent.
+  var CATCH_UP_GAP_THRESHOLD = 6;
+
   // ---------- The Doubt: rolls paired with the player (see the shared
   // click handler above), then moves once the player's landing type is
-  // known — baseline creep + the new die roll + setback/connection
-  // modifiers, all additive per the follow-up clarification. Checks the
-  // catch condition against the player's own final square. The very
-  // first time this ever runs, the intro card explains the rules
-  // before the token moves at all. ----------
+  // known — his own die roll plus setback/connection modifiers, all
+  // additive, plus the conditional catch-up bonus above when the gap
+  // calls for it. Checks the catch condition against the player's own
+  // final square. The very first time this ever runs, the intro card
+  // explains the rules before the token moves at all. ----------
   function resolveDoubtTurn(playerOutcome, doubtRoll, onDone) {
     var doubtFrom = getDoubtSquare();
     var modifier = playerOutcome.landedType === 'setback' ? 1
       : (playerOutcome.landedType === 'connection' ? -2 : 0);
-    var doubtMove = 1 + doubtRoll + modifier; // 1 = existing baseline creep
+    var gapBeforeMove = playerOutcome.finalSquare - doubtFrom;
+    var catchUpFired = gapBeforeMove > CATCH_UP_GAP_THRESHOLD;
+    var doubtMove = doubtRoll + modifier + (catchUpFired ? 1 : 0);
     var doubtTo = Math.max(1, Math.min(44, doubtFrom + doubtMove));
     var caught = doubtTo >= playerOutcome.finalSquare;
     var isFirstDoubtMove = localStorage.getItem('doubtIntroSeen') !== 'true';
@@ -2303,7 +2347,7 @@
             if (!localStorage.getItem('gameSquare') || parseInt(localStorage.getItem('gameSquare'), 10) !== playerOutcome.finalSquare) {
               localStorage.setItem('gameSquare', String(playerOutcome.finalSquare));
             }
-            showDoubtVoice(onDone);
+            showDoubtVoice(catchUpFired, onDone);
           }
         }, 400);
       }, 300);
