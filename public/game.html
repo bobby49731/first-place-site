@@ -596,11 +596,14 @@
   .doubt-response:hover{background:#F5F0FA;}
   /* Same bounce-plus-glow visual language as .click-callout / .dice-
      dome.prompt — added once the button has already popped in (after
-     its own delay), to draw the eye back to it. */
-  .doubt-response.pulse{animation:doubt-response-pulse 1.4s ease-in-out infinite;}
+     its own delay), to draw the eye back to it. Deliberately punchier
+     than that base language (bigger scale swing, brighter glow, faster
+     cadence) since this is the one thing the player needs to notice
+     and tap to move on. */
+  .doubt-response.pulse{animation:doubt-response-pulse 0.9s ease-in-out infinite;}
   @keyframes doubt-response-pulse{
-    0%, 100%{transform:translate(-50%, -50%) translateY(0); box-shadow:0 10px 22px rgba(42,32,51,0.32), 0 0 0 rgba(255,199,74,0);}
-    50%{transform:translate(-50%, -50%) translateY(-4px); box-shadow:0 10px 22px rgba(42,32,51,0.32), 0 0 18px 6px rgba(255,199,74,0.55);}
+    0%, 100%{transform:translate(-50%, -50%) translateY(0) scale(1); box-shadow:0 10px 22px rgba(42,32,51,0.32), 0 0 0 rgba(255,199,74,0);}
+    50%{transform:translate(-50%, -50%) translateY(-7px) scale(1.12); box-shadow:0 10px 22px rgba(42,32,51,0.32), 0 0 30px 12px rgba(255,199,74,0.85);}
   }
 
   /* THE DOUBT'S DEFEAT — a one-time ceremonial moment at the Finish
@@ -888,7 +891,7 @@
       <div class="doubt-overlay" id="doubt-overlay">
         <div class="doubt-card" id="doubt-card">
           <img class="doubt-card-portrait" src="assets/game/A-Doubt-playing-piece.png" alt="The Doubt">
-          <div class="doubt-card-name">The Doubt</div>
+          <div class="doubt-card-name">A Doubt</div>
           <p class="doubt-card-line" id="doubt-card-line"></p>
           <ul class="doubt-card-rules" id="doubt-card-rules" hidden>
             <li><span class="doubt-rule-dot"></span>He moves every time you do</li>
@@ -2085,7 +2088,7 @@
   // beat, then pulses to draw the eye back to it — a little more true
   // to how a comeback actually lands than an instant, equally-weighted
   // reply would feel.
-  var DOUBT_RESPONSE_DELAY_MS = 1300;
+  var DOUBT_RESPONSE_DELAY_MS = 1800;
 
   // Positions a speech bubble directly above whatever token stands on a
   // given SQUARE — using that square's own cellPercent math (not the
@@ -2144,7 +2147,7 @@
 
     document.getElementById('doubt-voice-text').textContent = '“' + DOUBT_LINES[idx] + '”';
     voice.hidden = false; // unhide first so its rendered height is measurable
-    positionSpeechAboveToken(voice, doubtSquare, doubtTokenHeight, lineHeightPx, 2);
+    positionSpeechAboveToken(voice, doubtSquare, doubtTokenHeight, lineHeightPx, 3);
     void voice.offsetWidth; // restart the pop-in if it's showing again quickly
     voice.classList.add('open');
 
@@ -2155,6 +2158,60 @@
     response.textContent = DOUBT_RESPONSES[idx];
     response.hidden = false;
     positionSpeechAboveToken(response, playerSquare, playerTokenHeight, lineHeightPx, 1);
+
+    // Square-based positioning alone can't guarantee the two never
+    // collide — The Doubt's own square can land physically LOWER on
+    // the board than the player's (e.g. one row further down the same
+    // left/right column), which fully offsets a fixed per-line lift and
+    // leaves the two bubbles overlapping regardless of how large that
+    // lift is. So after placing both, measure them for real and nudge
+    // voice further up by however much is actually needed to clear
+    // response by a full line, whatever the board geometry did.
+    //
+    // Both bubbles are still mid-way through their own scale-in pop
+    // transition at this point (voice's 'open' class was just added
+    // above), so a raw getBoundingClientRect() here would read a
+    // temporarily-smaller box and under-correct. transform:scale
+    // doesn't touch layout size, only the rendered one, so offsetWidth/
+    // offsetHeight (layout-based, transform-independent) give the true
+    // final size — combined with the rect's own center point (which
+    // IS stable throughout, since translate(-50%,-50%) itself never
+    // changes, only the trailing scale(...) does) that's enough to
+    // reconstruct the true final edges regardless of transition timing.
+    function finalEdges(el) {
+      var r = el.getBoundingClientRect();
+      var cx = r.left + r.width / 2;
+      var cy = r.top + r.height / 2;
+      var w = el.offsetWidth, h = el.offsetHeight;
+      return { top: cy - h / 2, bottom: cy + h / 2, left: cx - w / 2, right: cx + w / 2 };
+    }
+
+    var board = document.getElementById('board-frame').getBoundingClientRect();
+    var voiceRect = finalEdges(voice);
+    var responseRect = finalEdges(response);
+    var deficit = (voiceRect.bottom + lineHeightPx) - responseRect.top;
+    if (deficit > 0 && board.height > 0) {
+      var currentTopPct = parseFloat(voice.style.top) || 0;
+      voice.style.top = Math.max(3, currentTopPct - (deficit / board.height) * 100) + '%';
+    }
+
+    // Near the board's own top edge there may not be enough room left
+    // to climb any further (voice ends up clamped at its floor, still
+    // overlapping) — when that happens, fall back to shifting voice
+    // sideways instead, in whichever direction actually has room.
+    voiceRect = finalEdges(voice);
+    var stillOverlapping = !(voiceRect.bottom <= responseRect.top || responseRect.bottom <= voiceRect.top);
+    if (stillOverlapping && board.width > 0) {
+      var marginPx = 12;
+      var currentLeftPct = parseFloat(voice.style.left) || 50;
+      var leftPctIfPushed = currentLeftPct - ((voiceRect.right - responseRect.left + marginPx) / board.width) * 100;
+      if (leftPctIfPushed >= 6) {
+        voice.style.left = leftPctIfPushed + '%';
+      } else {
+        voice.style.left = Math.min(94, currentLeftPct + ((responseRect.right - voiceRect.left + marginPx) / board.width) * 100) + '%';
+      }
+    }
+
     response.hidden = true;
     response.classList.remove('open', 'pulse');
 
