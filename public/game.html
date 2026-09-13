@@ -335,6 +335,60 @@
     transform:translate(-50%, -50%);
     filter:drop-shadow(0 2px 3px rgba(42,32,51,0.35));
   }
+  /* Brief highlight on whichever slot was JUST filled, for the
+     duration of the zoom moment only — a soft gold ring/glow, not a
+     permanent style (removed again once the zoom ends). */
+  .roomie-slot-img.just-collected{
+    outline:3px solid var(--gold);
+    outline-offset:3px;
+    border-radius:8px;
+    filter:drop-shadow(0 2px 3px rgba(42,32,51,0.35)) drop-shadow(0 0 14px rgba(240,168,46,0.85));
+  }
+
+  /* ROOMIE ZOOM — a timed (auto-skippable) close-up on the wall right
+     after a genuine find. Dim backdrop, flex-centered so the wall
+     (reparented in here for the duration) just needs its OWN size/
+     transform to change — no coordinate math for centering. */
+  .roomie-zoom-overlay{
+    position:absolute; inset:0;
+    z-index:12;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(42,32,51,0.6);
+    border-radius:16px;
+    opacity:0;
+    pointer-events:none;
+    cursor:pointer;
+    transition:opacity 0.3s ease;
+  }
+  .roomie-zoom-overlay[hidden]{display:none;}
+  .roomie-zoom-overlay.open{opacity:1; pointer-events:auto;}
+  .roomie-zoom-hint{
+    position:absolute; left:50%; bottom:6%; transform:translateX(-50%);
+    background:rgba(255,255,255,0.94); color:var(--plum);
+    font-family:'Baloo 2', sans-serif; font-weight:700;
+    font-size:clamp(11px, 2vw, 13px); letter-spacing:0.02em;
+    padding:7px 16px; border-radius:999px;
+    box-shadow:0 3px 8px rgba(0,0,0,0.25);
+    opacity:0;
+    transition:opacity 0.3s ease 0.15s;
+  }
+  .roomie-zoom-overlay.open .roomie-zoom-hint{opacity:0.92;}
+  /* Overrides the wall's normal absolute bottom-center placement while
+     it's reparented in here — sized and popped in via transform/
+     opacity only, matching the same pop language used elsewhere
+     (reveal-card, doubt-card) rather than inventing a new one. */
+  .roomie-wall.zoomed{
+    position:relative;
+    left:auto; bottom:auto;
+    transform:scale(0.85);
+    height:min(58vh, 62%);
+    opacity:0;
+    transition:transform 0.35s cubic-bezier(.34,1.56,.64,1), opacity 0.3s ease;
+  }
+  .roomie-zoom-overlay.open .roomie-wall.zoomed{
+    transform:scale(1);
+    opacity:1;
+  }
 
   /* REVEAL CARD — pops up large and centered on the board, positioned
      near wherever the token currently is (not a bottom sheet). */
@@ -873,6 +927,20 @@
         <div class="roomie-shelf" id="roomie-shelf">
           <img class="roomie-shelf-bg" src="assets/game/roomies/shelf-blank.png" alt="Roomie shelf">
         </div>
+      </div>
+
+      <!--
+        ROOMIE ZOOM — a brief, skippable moment after a genuine Roomie
+        find: the wall itself (the SAME live #roomie-wall element,
+        reparented in here for the duration via playRoomieZoom() and
+        moved back out afterward — not a clone, so its already-correct
+        slot art just comes along with it) scales up large and
+        centered, with the newly-filled slot highlighted, then
+        auto-returns to the normal board view. Tap anywhere to skip
+        ahead if the timed version ever feels like too much.
+      -->
+      <div class="roomie-zoom-overlay" id="roomie-zoom-overlay" hidden>
+        <div class="roomie-zoom-hint" id="roomie-zoom-hint">Tap to continue</div>
       </div>
 
       <div class="reveal-overlay" id="reveal-overlay">
@@ -1814,7 +1882,17 @@
       if (closed) return;
       closed = true;
       overlay.classList.remove('open');
-      window.setTimeout(onDone, 260); // let the close transition play first
+      window.setTimeout(function () {
+        // A genuine Roomie find (not the near-miss preview) gets a
+        // brief zoom-in on the wall itself before handing off, so the
+        // player actually sees the new item sitting in its spot —
+        // every other card type goes straight to onDone as before.
+        if (outcome.roomieCollected && outcome.landedRoomie) {
+          playRoomieZoom(outcome.landedRoomie.id, onDone);
+        } else {
+          onDone();
+        }
+      }, 260); // let the close transition play first
     }
 
     // Connection squares keep their honor-system "Confirm" wording
@@ -2585,6 +2663,59 @@
         img.style.height = rect.height + '%';
       }
     });
+  }
+
+  // ---------- Roomie zoom — a brief, skippable close-up on the wall
+  // right after a genuine find (not the near-miss preview), so the
+  // player actually sees their new item sitting in its spot before
+  // play continues. Defaults to an automatic timed sequence (~2-3s
+  // total, including the pop-in/out transitions); tapping anywhere on
+  // the dimmed backdrop skips straight to zooming back out. Reparents
+  // the SAME live #roomie-wall element (not a clone) into the zoom
+  // overlay for the duration, then moves it back to its normal spot
+  // afterward — its 16 slots' art is already correct either way (set
+  // by updateRoomieWallSlots() before this ever runs), nothing to
+  // rebuild. ----------
+  var ROOMIE_ZOOM_HOLD_MS = 2300; // + ~0.35s pop-in/out each side lands in the requested ~2-3s
+
+  function playRoomieZoom(roomieId, onDone) {
+    var wallEl = document.getElementById('roomie-wall');
+    var overlay = document.getElementById('roomie-zoom-overlay');
+    if (!wallEl || !overlay) { onDone(); return; }
+
+    var boardFrame = document.getElementById('board-frame');
+    var homeNextSibling = overlay; // the wall's static HTML position is right before this overlay
+
+    var slotImg = document.querySelector('.roomie-slot-img[data-roomie-id="' + roomieId + '"]');
+    if (slotImg) slotImg.classList.add('just-collected');
+
+    wallEl.hidden = false;
+    wallEl.classList.add('zoomed');
+    overlay.hidden = false;
+    overlay.insertBefore(wallEl, overlay.firstChild); // ahead of the "Tap to continue" hint, so the hint paints on top
+
+    void overlay.offsetWidth; // restart-safe, matches the pattern used elsewhere for repeatable CSS transitions
+    overlay.classList.add('open');
+
+    var closed = false;
+    var holdTimer = window.setTimeout(finish, ROOMIE_ZOOM_HOLD_MS);
+
+    function finish() {
+      if (closed) return;
+      closed = true;
+      window.clearTimeout(holdTimer);
+      overlay.onclick = null;
+      overlay.classList.remove('open');
+      window.setTimeout(function () {
+        overlay.hidden = true;
+        wallEl.classList.remove('zoomed');
+        if (slotImg) slotImg.classList.remove('just-collected');
+        boardFrame.insertBefore(wallEl, homeNextSibling); // back to its normal bottom-center spot
+        onDone();
+      }, 350); // let the zoom-out transition play first
+    }
+
+    overlay.onclick = finish; // tap anywhere to skip ahead
   }
 
   // ---------- Settled board view (returning to /game after at least
