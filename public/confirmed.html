@@ -99,6 +99,8 @@
 
 <script>
   localStorage.setItem('hasEnteredEmail', 'true');
+  // The shop's "Want more?" videos unlock only on this flag — see shop.html.
+  localStorage.setItem('subscriberConfirmed', 'true');
 
   // A gate that isn't the shop page (e.g. /game) can set this right before
   // handing off to Kit, so this lands back where the visitor actually

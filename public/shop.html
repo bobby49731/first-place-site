@@ -1147,7 +1147,7 @@
     // VIDEO LIGHTBOX — clicking an unlocked thumbnail opens the video
     // large instead of playing it small inline in the thumbnail. Locked
     // thumbnails never reach this at all (the .unlocked check below is
-    // unchanged) — only the email gate above can unlock them.
+    // unchanged) — only a confirmed subscription can unlock them.
     var videoLightbox = document.getElementById('video-lightbox');
     var videoLightboxFrame = document.getElementById('video-lightbox-frame');
     var videoLightboxClose = document.getElementById('video-lightbox-close');
@@ -1215,7 +1215,14 @@
       window.history.replaceState(null, '', window.location.pathname + (qs ? '?' + qs : '') + window.location.hash);
     }
 
-    if (localStorage.getItem('hasEnteredEmail') === 'true') {
+    // Gate on subscriberConfirmed, NOT the site-wide hasEnteredEmail flag.
+    // hasEnteredEmail is set the moment Kit merely accepts a signup (here,
+    // on the homepage modal, and on /game) — before anyone clicks the
+    // confirmation link — so gating on it let any typed address, real or
+    // not, unlock these videos. subscriberConfirmed is only ever set by an
+    // actual confirmation: /api/check-subscriber returning confirmed, or
+    // confirmed.html (where Kit's confirmation link lands).
+    if (localStorage.getItem('subscriberConfirmed') === 'true') {
       reveal(justConfirmed);
       return;
     }
@@ -1256,6 +1263,7 @@
         .then(function (data) {
           if (data && data.confirmed) {
             localStorage.setItem('hasEnteredEmail', 'true');
+            localStorage.setItem('subscriberConfirmed', 'true');
             reveal(true);
             return;
           }
