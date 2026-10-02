@@ -51,6 +51,11 @@
 //   failure (bad key, Resend error, network issue) comes back as an
 //   honest { success: false } — the client only advances once this
 //   genuinely reports success, so that has to mean something real.
+//
+//   POST /api/debug-check — verifies the game's debug-mode key against
+//   the DEBUG_KEY secret, so the key itself never ships in game.html's
+//   public source. Responds { ok } and nothing else; ok is false on any
+//   mismatch, missing secret, or bad body.
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -240,6 +245,30 @@ async function submitContact(request, env) {
   return jsonResponse({ success: true, advanced: true });
 }
 
+async function debugCheck(request, env) {
+  if (request.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 });
+  }
+
+  let key;
+  try {
+    const body = await request.json();
+    key = typeof body.key === 'string' ? body.key : '';
+  } catch (err) {
+    return jsonResponse({ ok: false }, 400);
+  }
+
+  if (!env.DEBUG_KEY || !key) {
+    return jsonResponse({ ok: false });
+  }
+
+  const enc = new TextEncoder();
+  const a = enc.encode(key);
+  const b = enc.encode(env.DEBUG_KEY);
+  const ok = a.byteLength === b.byteLength && crypto.subtle.timingSafeEqual(a, b);
+  return jsonResponse({ ok: ok });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -250,6 +279,10 @@ export default {
 
     if (url.pathname === '/api/submit-contact') {
       return submitContact(request, env);
+    }
+
+    if (url.pathname === '/api/debug-check') {
+      return debugCheck(request, env);
     }
 
     // Everything else: serve the static site exactly as before.

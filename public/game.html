@@ -2789,9 +2789,11 @@
   // ---------- DEBUG TOOL (internal testing only) ----------
   // Jump straight to any square's card/effect without rolling, so
   // every square can be checked by hand instead of relying on random
-  // dice. Never reachable by a normal visitor: completely inert unless
-  // the page is loaded with the exact secret key below as a query
-  // param, and unlocking only persists for the current browser tab
+  // dice. Inert unless the page is loaded with the right debug_key
+  // query param. The key is NOT in this file: it's the Worker's
+  // DEBUG_KEY secret, checked server-side via /api/debug-check (this
+  // page is public, so a key written here was readable by anyone).
+  // Unlocking only persists for the current browser tab
   // (sessionStorage), never across a new visit.
   //
   //   https://watchfirstplace.com/game?debug_square=27&debug_key=<key>
@@ -2806,7 +2808,6 @@
   // number field, Go, and Prev/Next, so the rest of a 1-44 walkthrough
   // never needs the URL touched again — it stays unlocked for the tab
   // until it's closed.
-  var DEBUG_KEY = '480a987a2907a28bbd9b82a7a1e88b7f';
 
   function debugQueryParam(name) {
     try {
@@ -2816,16 +2817,38 @@
     }
   }
 
+  // Synchronous on purpose — the rest of the page's setup reads
+  // DEBUG_ACTIVE straight away. A not-yet-verified debug_key returns
+  // false (the page loads normally) while /api/debug-check runs; on a
+  // match it marks the tab unlocked, drops debug_key from the address
+  // bar, and reloads, so the next load takes the sessionStorage path
+  // with every other debug_* param still applied.
   function debugIsUnlocked() {
-    if (debugQueryParam('debug_key') === DEBUG_KEY) {
-      try { sessionStorage.setItem('debugUnlocked', 'true'); } catch (e) {}
-      return true;
-    }
     try {
-      return sessionStorage.getItem('debugUnlocked') === 'true';
+      if (sessionStorage.getItem('debugUnlocked') === 'true') return true;
     } catch (e) {
       return false;
     }
+    var key = debugQueryParam('debug_key');
+    if (key) {
+      fetch('/api/debug-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: key })
+      })
+        .then(function (res) { return res.ok ? res.json() : { ok: false }; })
+        .then(function (data) {
+          if (!data || !data.ok) return;
+          sessionStorage.setItem('debugUnlocked', 'true');
+          var params = new URLSearchParams(window.location.search);
+          params.delete('debug_key');
+          var qs = params.toString();
+          window.history.replaceState(null, '', window.location.pathname + (qs ? '?' + qs : '') + window.location.hash);
+          window.location.reload();
+        })
+        .catch(function () {});
+    }
+    return false;
   }
 
   var DEBUG_ACTIVE = debugIsUnlocked();
