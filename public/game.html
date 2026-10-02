@@ -1806,6 +1806,7 @@
         .then(function (data) {
           if (data && data.confirmed) {
             localStorage.setItem('hasEnteredEmail', 'true');
+            localStorage.setItem('subscriberConfirmed', 'true');
             completeOpeningMove();
             return;
           }
@@ -2952,7 +2953,14 @@
   var storedCharacter = getCharacterKey();
   var storedSquare = localStorage.getItem('gameSquare');
   var storedPendingRoll = localStorage.getItem('pendingRoll');
-  var confirmed = localStorage.getItem('hasEnteredEmail') === 'true';
+  // subscriberConfirmed, NOT hasEnteredEmail: the latter is set the moment
+  // Kit merely accepts a signup (here, the homepage, the shop), before any
+  // confirmation click, so gating on it let a plain reload finish the
+  // opening move unconfirmed. subscriberConfirmed is only set by
+  // /api/check-subscriber confirming the email, or by confirmed.html.
+  // Players who already have a gameSquare are deliberately left alone —
+  // the storedSquare branch below runs first and never checks this.
+  var confirmed = localStorage.getItem('subscriberConfirmed') === 'true';
 
   // Set by the shop page's own character-select cards, and only ever
   // meant to survive the single hop from there to here — consume it
