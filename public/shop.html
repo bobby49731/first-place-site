@@ -186,12 +186,18 @@
     border-radius:16px;
     overflow:hidden;
   }
-  .unlock-card:nth-child(1) .unlock-thumb{background:linear-gradient(135deg, var(--pink), var(--pink-deep));}
-  .unlock-card:nth-child(2) .unlock-thumb{background:linear-gradient(135deg, var(--gold), var(--gold-deep));}
-  .unlock-card:nth-child(3) .unlock-thumb{background:linear-gradient(135deg, var(--teal), var(--teal-deep));}
-  .unlock-card:nth-child(4) .unlock-thumb{background:linear-gradient(135deg, var(--blue), var(--blue-deep));}
+  .unlock-card:nth-child(8n+1) .unlock-thumb{background:linear-gradient(135deg, var(--pink), var(--pink-deep));}
+  .unlock-card:nth-child(8n+2) .unlock-thumb{background:linear-gradient(135deg, var(--gold), var(--gold-deep));}
+  .unlock-card:nth-child(8n+3) .unlock-thumb{background:linear-gradient(135deg, var(--teal), var(--teal-deep));}
+  .unlock-card:nth-child(8n+4) .unlock-thumb{background:linear-gradient(135deg, var(--blue), var(--blue-deep));}
+  .unlock-card:nth-child(8n+5) .unlock-thumb{background:linear-gradient(135deg, var(--pink-deep), var(--plum));}
+  .unlock-card:nth-child(8n+6) .unlock-thumb{background:linear-gradient(135deg, var(--gold-deep), var(--plum));}
+  .unlock-card:nth-child(8n+7) .unlock-thumb{background:linear-gradient(135deg, var(--teal-deep), var(--plum));}
+  .unlock-card:nth-child(8n+8) .unlock-thumb{background:linear-gradient(135deg, var(--blue-deep), var(--plum));}
   .unlock-thumb-fill{
     position:absolute; inset:0;
+    width:100%; height:100%;
+    object-fit:cover;
     filter:blur(16px) brightness(0.75) saturate(1.1);
     transform:scale(1.12);
     transition:filter 0.9s ease, transform 0.9s cubic-bezier(.34,1.56,.64,1);
@@ -215,10 +221,14 @@
   .unlock-card.unlocked .unlock-thumb-fill{filter:blur(0) brightness(1) saturate(1); transform:scale(1);}
   .unlock-card.unlocked .unlock-lock{opacity:0; pointer-events:none;}
   .unlock-card.unlocked .unlock-play{opacity:1;}
-  /* slight cascade so the four cards don't all pop in perfectly in sync */
+  /* slight cascade so the cards don't all pop in perfectly in sync */
   .unlock-card:nth-child(2) .unlock-thumb-fill, .unlock-card:nth-child(2) .unlock-lock{transition-delay:0.08s;}
   .unlock-card:nth-child(3) .unlock-thumb-fill, .unlock-card:nth-child(3) .unlock-lock{transition-delay:0.16s;}
   .unlock-card:nth-child(4) .unlock-thumb-fill, .unlock-card:nth-child(4) .unlock-lock{transition-delay:0.24s;}
+  .unlock-card:nth-child(5) .unlock-thumb-fill, .unlock-card:nth-child(5) .unlock-lock{transition-delay:0.32s;}
+  .unlock-card:nth-child(6) .unlock-thumb-fill, .unlock-card:nth-child(6) .unlock-lock{transition-delay:0.4s;}
+  .unlock-card:nth-child(7) .unlock-thumb-fill, .unlock-card:nth-child(7) .unlock-lock{transition-delay:0.48s;}
+  .unlock-card:nth-child(8) .unlock-thumb-fill, .unlock-card:nth-child(8) .unlock-lock{transition-delay:0.56s;}
   /* used for the "already unlocked on load" case so returning visitors
      don't watch the reveal animation replay on every normal pageview */
   .unlock-grid.unlock-instant .unlock-thumb-fill,
@@ -579,30 +589,51 @@
     .joke-card.expanded .dream-photo-wrap{height:220px;}
   }
 
-  /* HOW PLEDGING WORKS */
+  /* HOW PLEDGING WORKS — collapsed by default, click to expand. Same
+     max-height transition technique as the .joke-card expand/collapse
+     above, scoped to its own classes so it doesn't inherit that
+     component's colorful teaser styling. */
   .pledge-info{
     max-width:640px;
-    margin:44px auto 0;
-    padding:26px 28px;
+    margin:44px auto 40px;
     background:var(--paper-2);
     border:1px solid var(--line);
     border-radius:16px;
-    text-align:center;
+    overflow:hidden;
   }
-  .pledge-info h2{
+  .pledge-toggle{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    width:100%;
+    padding:16px 28px;
+    margin:0;
+    border:0;
+    background:none;
+    cursor:pointer;
+    font:inherit;
     font-family:'Baloo 2', sans-serif;
     font-weight:700;
     font-size:1.05rem;
     color:var(--plum);
-    margin-bottom:8px;
+    text-align:center;
   }
-  .pledge-info p{
+  .pledge-toggle svg{flex-shrink:0; transition:transform 0.3s ease;}
+  .pledge-info.expanded .pledge-toggle svg{transform:rotate(180deg);}
+  .pledge-body{
+    max-height:0;
+    overflow:hidden;
+    transition:max-height 0.45s cubic-bezier(.4,0,.2,1);
+  }
+  .pledge-body-inner{padding:0 28px 26px; text-align:center;}
+  .pledge-body-inner p{
     color:var(--ink-soft);
     font-size:14px;
     line-height:1.6;
   }
-  .pledge-info p + h3{margin-top:20px;}
-  .pledge-info h3{
+  .pledge-body-inner p + h3{margin-top:20px;}
+  .pledge-body-inner h3{
     font-family:'Baloo 2', sans-serif;
     font-weight:700;
     font-size:13px;
@@ -611,7 +642,27 @@
     color:var(--gold-deep);
     margin-bottom:8px;
   }
-  .pledge-info a{
+  .pledge-close{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    width:100%;
+    margin-top:18px;
+    padding:14px 0 0;
+    background:none;
+    border:0;
+    border-top:1px solid var(--line);
+    color:var(--ink-soft);
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:0.02em;
+    text-transform:uppercase;
+    cursor:pointer;
+  }
+  .pledge-close:hover{color:var(--plum);}
+  .pledge-body-inner a{
     color:var(--plum);
     font-weight:600;
     text-decoration:underline;
@@ -645,6 +696,37 @@
     font-size:clamp(1.8rem, 4.5vw, 2.6rem);
     color:var(--plum);
   }
+
+  /* PLAY THE GAME — character select, embedded here from game.html.
+     Same .char-grid/.char-card component, same art, same layout —
+     picking a character here stores it the same way game.html's own
+     select screen does, then hands off to game.html to continue. */
+  .char-select-section{
+    text-align:center;
+    padding:0 6vw 70px;
+  }
+  .char-select-section h2{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:clamp(1.8rem, 4.5vw, 2.6rem);
+    color:var(--plum);
+  }
+  .char-select-section .goods-blurb{margin-top:14px;}
+  .char-grid{
+    display:grid; grid-template-columns:repeat(4, 1fr); gap:20px;
+    margin-top:40px; max-width:900px; margin-left:auto; margin-right:auto;
+  }
+  @media (max-width:760px){.char-grid{grid-template-columns:repeat(2, 1fr);}}
+  .char-card{
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+    background:#fff; border:1px solid var(--line); border-radius:18px;
+    padding:18px 14px 20px; cursor:pointer; color:inherit;
+    transition:transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .char-card:hover{transform:translateY(-4px); box-shadow:0 10px 24px rgba(42,32,51,0.14); border-color:var(--gold);}
+  .char-card img{width:100%; height:auto; object-fit:contain; margin-bottom:10px;}
+  .char-name{font-family:'Baloo 2', sans-serif; font-weight:700; font-size:16px; color:var(--plum); margin-bottom:6px;}
+  .char-dream{font-size:12.5px; color:var(--ink-soft); line-height:1.4;}
 
   /* SUPPORT / PATREON STRIP */
   .support-strip{
@@ -809,6 +891,52 @@
     transition:opacity 0.2s ease;
   }
   .lightbox-close:hover{opacity:1;}
+
+  /* VIDEO LIGHTBOX — same fixed full-viewport overlay pattern as
+     #lightbox above, sized for a 16:9 player instead of a photo. Opened
+     from an unlocked "Want more?" thumbnail; locked thumbnails never
+     reach this — they still only trigger the email gate. */
+  #video-lightbox{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(42,32,51,0.95);
+    z-index:1000;
+    align-items:center;
+    justify-content:center;
+    padding:40px;
+  }
+  .video-lightbox-frame{
+    position:relative;
+    width:min(90vw, 160vh);
+    aspect-ratio:16/9;
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 10px 40px rgba(0,0,0,0.4);
+    background:#000;
+  }
+  .video-lightbox-frame iframe{
+    position:absolute; inset:0; width:100%; height:100%; border:0;
+  }
+  .video-lightbox-close{
+    position:fixed;
+    top:22px;
+    right:28px;
+    background:none;
+    border:0;
+    color:#fff;
+    font-size:2.4rem;
+    line-height:1;
+    cursor:pointer;
+    font-family:'Inter', sans-serif;
+    opacity:0.85;
+    transition:opacity 0.2s ease;
+    z-index:1001;
+  }
+  .video-lightbox-close:hover{opacity:1;}
+  @media (max-width:600px){
+    #video-lightbox{padding:14px;}
+  }
 </style>
 </head>
 <body>
@@ -849,20 +977,10 @@
       <p class="unlock-sub">New shorts. Product drops before anyone else. Cast tours you won't see anywhere else.</p>
     </div>
 
-    <!--
-      VIDEO PLACEHOLDERS: each .unlock-thumb-fill below is a plain color
-      gradient standing in for a real thumbnail image, and the titles/
-      runtimes are placeholder copy. Once real files exist: replace the
-      empty .unlock-thumb-fill div with an <img class="unlock-thumb-fill"
-      src="..."> (same class, so the blur/reveal styling still applies),
-      swap in the real title/runtime text, and set each card's
-      data-video-src to the real embed URL — clicking an unlocked card
-      already looks for that attribute and plays it inline.
-    -->
     <div class="unlock-grid" id="unlock-grid">
-      <div class="unlock-card" data-video-src="">
+      <div class="unlock-card" data-video-src="https://player.vimeo.com/video/1224059479?h=ec62b67439">
         <div class="unlock-thumb">
-          <div class="unlock-thumb-fill"></div>
+          <img class="unlock-thumb-fill" src="https://i.vimeocdn.com/video/2203928278-b0b61fc3bd9ae3718fbbea695c082a1b28e9e3b1125303480f32fe16e7a843e0-d_640?region=us" alt="Martha &quot;Why aren't you crying?&quot;" loading="lazy">
           <div class="unlock-lock" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
           </div>
@@ -871,14 +989,14 @@
           </div>
         </div>
         <div class="unlock-meta">
-          <span class="unlock-title">Cast Tour: Fran's Room</span>
-          <span class="unlock-runtime">2:14</span>
+          <span class="unlock-title">Martha "Why aren't you crying?"</span>
+          <span class="unlock-runtime">1:03</span>
         </div>
       </div>
 
-      <div class="unlock-card" data-video-src="">
+      <div class="unlock-card" data-video-src="https://player.vimeo.com/video/1228850685?h=a3616aeeed">
         <div class="unlock-thumb">
-          <div class="unlock-thumb-fill"></div>
+          <img class="unlock-thumb-fill" src="https://i.vimeocdn.com/video/2203925646-870d1aaf6bdf99a302ec2b24507ede9bdce9cea219ead5ca588f840dbb635420-d_640?region=us" alt="Moving out is the easy part" loading="lazy">
           <div class="unlock-lock" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
           </div>
@@ -887,14 +1005,14 @@
           </div>
         </div>
         <div class="unlock-meta">
-          <span class="unlock-title">Cast Tour: Martha's Corner</span>
-          <span class="unlock-runtime">3:02</span>
+          <span class="unlock-title">Moving out is the easy part</span>
+          <span class="unlock-runtime">1:47</span>
         </div>
       </div>
 
-      <div class="unlock-card" data-video-src="">
+      <div class="unlock-card" data-video-src="https://player.vimeo.com/video/1228870626?h=cd4c79904b">
         <div class="unlock-thumb">
-          <div class="unlock-thumb-fill"></div>
+          <img class="unlock-thumb-fill" src="https://i.vimeocdn.com/video/2203926525-22c2a096f7fc208e67a8bf35dced4c23b41e46b717ff7d2d5eca9568723e0942-d_640?region=us" alt="Jeremy Interview's at an ice cream shop" loading="lazy">
           <div class="unlock-lock" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
           </div>
@@ -903,14 +1021,14 @@
           </div>
         </div>
         <div class="unlock-meta">
-          <span class="unlock-title">Behind the Scenes: First Table Read</span>
-          <span class="unlock-runtime">4:41</span>
+          <span class="unlock-title">Jeremy Interview's at an ice cream shop</span>
+          <span class="unlock-runtime">0:53</span>
         </div>
       </div>
 
-      <div class="unlock-card" data-video-src="">
+      <div class="unlock-card" data-video-src="https://player.vimeo.com/video/1228933369?h=591e9cec45">
         <div class="unlock-thumb">
-          <div class="unlock-thumb-fill"></div>
+          <img class="unlock-thumb-fill" src="https://i.vimeocdn.com/video/2203469694-07200fec7ac02fd22e06effa72579135806c8f37c8b69357927ed9d36ef35c8c-d_640?region=us" alt="Good WILL self defense at the workplace" loading="lazy">
           <div class="unlock-lock" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
           </div>
@@ -919,8 +1037,72 @@
           </div>
         </div>
         <div class="unlock-meta">
-          <span class="unlock-title">Drop Preview: The Frooney Prototype</span>
-          <span class="unlock-runtime">1:38</span>
+          <span class="unlock-title">Good WILL self defense at the workplace</span>
+          <span class="unlock-runtime">1:04</span>
+        </div>
+      </div>
+
+      <div class="unlock-card" data-video-src="https://player.vimeo.com/video/1228878262?h=5dc4b79d99">
+        <div class="unlock-thumb">
+          <img class="unlock-thumb-fill" src="https://i.vimeocdn.com/video/2203929411-0bcde213128519f241efb53f328f059af7918d4c0e1c3fc4eb65b15f87f8aa45-d_640?region=us" alt="Martha Nose Best" loading="lazy">
+          <div class="unlock-lock" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          </div>
+          <div class="unlock-play" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+        </div>
+        <div class="unlock-meta">
+          <span class="unlock-title">Martha Nose Best</span>
+          <span class="unlock-runtime">1:19</span>
+        </div>
+      </div>
+
+      <div class="unlock-card" data-video-src="https://player.vimeo.com/video/1228875845?h=58d0eab144">
+        <div class="unlock-thumb">
+          <img class="unlock-thumb-fill" src="https://i.vimeocdn.com/video/2203394109-2dd8c0d4bb6aca4574a5e36b7ae37fb2dea65d4573da3544908822f197be769e-d_640?region=us" alt="The boys talk dating" loading="lazy">
+          <div class="unlock-lock" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          </div>
+          <div class="unlock-play" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+        </div>
+        <div class="unlock-meta">
+          <span class="unlock-title">The boys talk dating</span>
+          <span class="unlock-runtime">0:37</span>
+        </div>
+      </div>
+
+      <div class="unlock-card" data-video-src="https://player.vimeo.com/video/1228916456?h=ab538aad15">
+        <div class="unlock-thumb">
+          <img class="unlock-thumb-fill" src="https://i.vimeocdn.com/video/2203930206-a07a0c56bdb1cbeabe3cf9b0d1a82637d92ea4a5d8493d3cd62afb8a4ba4f17c-d_640?region=us" alt="Fran &quot;Sofa so good.&quot;" loading="lazy">
+          <div class="unlock-lock" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          </div>
+          <div class="unlock-play" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+        </div>
+        <div class="unlock-meta">
+          <span class="unlock-title">Fran "Sofa so good."</span>
+          <span class="unlock-runtime">0:25</span>
+        </div>
+      </div>
+
+      <div class="unlock-card" data-video-src="https://player.vimeo.com/video/1226742096?h=106a00c356">
+        <div class="unlock-thumb">
+          <img class="unlock-thumb-fill" src="https://i.vimeocdn.com/video/2203931854-2f472bbefe094a247f5bc4870eb4e9905a55bec9f112ebef4fbce8376c7cb7e6-d_640?region=us" alt="My spirit is everywhere" loading="lazy">
+          <div class="unlock-lock" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          </div>
+          <div class="unlock-play" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+        </div>
+        <div class="unlock-meta">
+          <span class="unlock-title">My spirit is everywhere</span>
+          <span class="unlock-runtime">0:26</span>
         </div>
       </div>
     </div>
@@ -932,6 +1114,11 @@
       </form>
       <p class="unlock-message" id="unlock-message" hidden></p>
     </div>
+  </div>
+
+  <div id="video-lightbox">
+    <button class="video-lightbox-close" id="video-lightbox-close" aria-label="Close">&times;</button>
+    <div class="video-lightbox-frame" id="video-lightbox-frame"></div>
   </div>
 </section>
 
@@ -957,18 +1144,58 @@
       }
     }
 
+    // VIDEO LIGHTBOX — clicking an unlocked thumbnail opens the video
+    // large instead of playing it small inline in the thumbnail. Locked
+    // thumbnails never reach this at all (the .unlocked check below is
+    // unchanged) — only the email gate above can unlock them.
+    var videoLightbox = document.getElementById('video-lightbox');
+    var videoLightboxFrame = document.getElementById('video-lightbox-frame');
+    var videoLightboxClose = document.getElementById('video-lightbox-close');
+
+    function openVideoLightbox(src, title) {
+      if (!videoLightbox || !videoLightboxFrame) return;
+      var autoplaySrc = src + (src.indexOf('?') === -1 ? '?' : '&') + 'autoplay=1';
+      var iframe = document.createElement('iframe');
+      iframe.src = autoplaySrc;
+      iframe.title = title || '';
+      iframe.setAttribute('allow', 'autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share');
+      iframe.setAttribute('allowfullscreen', '');
+      videoLightboxFrame.innerHTML = '';
+      videoLightboxFrame.appendChild(iframe);
+      videoLightbox.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeVideoLightbox() {
+      if (!videoLightbox || !videoLightboxFrame) return;
+      videoLightbox.style.display = 'none';
+      // Clearing the iframe (rather than just hiding it) actually stops
+      // playback/audio on close, instead of leaving it running unheard
+      // behind the closed overlay.
+      videoLightboxFrame.innerHTML = '';
+      document.body.style.overflow = '';
+    }
+
     function playVideo(card) {
       var src = card.getAttribute('data-video-src');
       if (!src) return;
-      var thumb = card.querySelector('.unlock-thumb');
-      var iframe = document.createElement('iframe');
-      iframe.src = src;
-      iframe.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0;';
-      iframe.setAttribute('allow', 'autoplay; fullscreen; picture-in-picture');
-      iframe.setAttribute('allowfullscreen', '');
-      thumb.innerHTML = '';
-      thumb.appendChild(iframe);
+      var titleEl = card.querySelector('.unlock-title');
+      openVideoLightbox(src, titleEl ? titleEl.textContent : '');
     }
+
+    if (videoLightboxClose) {
+      videoLightboxClose.addEventListener('click', closeVideoLightbox);
+    }
+    if (videoLightbox) {
+      videoLightbox.addEventListener('click', function (e) {
+        if (e.target === videoLightbox) closeVideoLightbox();
+      });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && videoLightbox && videoLightbox.style.display === 'flex') {
+        closeVideoLightbox();
+      }
+    });
 
     grid.addEventListener('click', function (e) {
       var card = e.target.closest('.unlock-card');
@@ -1101,7 +1328,7 @@
 
           <span class="dream-goal">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22V3"/><path d="M4 4h13l-2 4 2 4H4"/></svg>
-            Goal: $7,000
+            Goal: $10,000
           </span>
 
           <a class="pledge-btn" href="https://buy.stripe.com/aFa00ceEYe6SexOaP2fnO05" target="_blank" rel="noopener">Give to Fran's Dream Fulfillment</a>
@@ -1195,7 +1422,7 @@
 
           <span class="dream-goal">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22V3"/><path d="M4 4h13l-2 4 2 4H4"/></svg>
-            Goal: $3,000
+            Goal: $10,000
           </span>
 
           <a class="pledge-btn" href="https://buy.stripe.com/14A7sEeEY1k6gFW1esfnO06" target="_blank" rel="noopener">Give to Will's Dream Fulfillment</a>
@@ -1242,7 +1469,7 @@
 
           <span class="dream-goal">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22V3"/><path d="M4 4h13l-2 4 2 4H4"/></svg>
-            Goal: $5,000
+            Goal: $10,000
           </span>
 
           <a class="pledge-btn" href="https://buy.stripe.com/6oU4gs68sgf0ahy8GUfnO07" target="_blank" rel="noopener">Give to Jeremy's Dream Fulfillment</a>
@@ -1258,29 +1485,146 @@
 
   </div>
 
-  <!--
-    PLACEHOLDER COPY — replace with the final pledge policy before launch:
-    exact refund/no-refund terms if a product doesn't hit its funding
-    threshold, and a real expected update cadence (e.g. "monthly").
-  -->
-  <div class="pledge-info">
-    <h2>How pledging works</h2>
-    <p>
-      We are funding the dream manifestation for the cast — they all have
-      big plans for their lives that, if manifested, can help other people
-      too. You can support them two ways: pledge toward their dream
-      fulfillment (their bigger personal mission), or pledge toward their
-      pre-manufacture product.
-    </p>
-    <h3>Product pledges</h3>
-    <p>
-      These are pre-manufacture products — pledging isn't the same as buying
-      something in stock. Your pledge goes toward funding production. If a
-      product doesn't reach the support it needs to get made, pledgers will
-      be notified and refunded. We'll share manufacturing updates as
-      milestones happen.
-    </p>
+  <div class="pledge-info" id="pledge-info">
+    <button type="button" class="pledge-toggle" id="pledge-toggle" aria-expanded="false" aria-controls="pledge-body">
+      How pledging works
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="pledge-body" id="pledge-body">
+      <div class="pledge-body-inner">
+        <p>
+          We are funding the dream manifestation for the cast — they all have
+          big plans for their lives that, if manifested, can help other people
+          too. You can support them two ways: pledge toward their dream
+          fulfillment (their bigger personal mission), or pledge toward their
+          pre-manufacture product.
+        </p>
+        <h3>Product pledges</h3>
+        <p>
+          These are pre-manufacture products — pledging isn't the same as buying
+          something in stock. Your pledge goes toward funding production. If a
+          product doesn't reach the support it needs to get made, pledgers will
+          be notified and refunded. We'll share manufacturing updates as
+          milestones happen.
+        </p>
+        <button type="button" class="pledge-close" id="pledge-close">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="18 15 12 9 6 15"/></svg>
+          Show less
+        </button>
+      </div>
+    </div>
   </div>
+
+  <script>
+    // Collapsed by default — expands on click, same max-height-transition
+    // technique as the .joke-card expand/collapse above. Either the
+    // toggle button (while open) or the "Show less" close control inside
+    // collapses it back.
+    (function () {
+      var container = document.getElementById('pledge-info');
+      var toggleBtn = document.getElementById('pledge-toggle');
+      var body = document.getElementById('pledge-body');
+      var closeBtn = document.getElementById('pledge-close');
+      if (!container || !toggleBtn || !body) return;
+
+      function expand() {
+        container.classList.add('expanded');
+        toggleBtn.setAttribute('aria-expanded', 'true');
+        body.style.maxHeight = body.scrollHeight + 'px';
+      }
+
+      function collapse() {
+        body.style.maxHeight = body.scrollHeight + 'px';
+        body.offsetHeight; // force reflow so the shrink actually animates
+        container.classList.remove('expanded');
+        toggleBtn.setAttribute('aria-expanded', 'false');
+        body.style.maxHeight = '0px';
+      }
+
+      body.addEventListener('transitionend', function (e) {
+        if (e.propertyName === 'max-height' && container.classList.contains('expanded')) {
+          body.style.maxHeight = 'none';
+        }
+      });
+
+      toggleBtn.addEventListener('click', function () {
+        if (container.classList.contains('expanded')) {
+          collapse();
+        } else {
+          expand();
+        }
+      });
+
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          collapse();
+        });
+      }
+
+      window.addEventListener('resize', function () {
+        if (container.classList.contains('expanded')) {
+          body.style.maxHeight = 'none';
+          body.style.maxHeight = body.scrollHeight + 'px';
+        }
+      });
+    })();
+  </script>
+
+  <div class="char-select-section" id="shop-char-select">
+    <h2>Choose Your Character</h2>
+    <p class="goods-blurb">Pick who you're playing as — you'll follow their path to the dream in the FIRST PLACE board game.</p>
+    <div class="char-grid">
+      <button type="button" class="char-card" data-character="fran">
+        <img src="assets/game/Fran-playing-piece.png" alt="Fran">
+        <span class="char-name">Fran</span>
+        <span class="char-dream">Record a bubblegum rap album — music video included.</span>
+      </button>
+      <button type="button" class="char-card" data-character="jeremy">
+        <img src="assets/game/Jeremy-playing-piece.png" alt="Jeremy">
+        <span class="char-name">Jeremy</span>
+        <span class="char-dream">A ride-along with the cops of Cops.</span>
+      </button>
+      <button type="button" class="char-card" data-character="will">
+        <img src="assets/game/Will-playing-piece.png" alt="Will">
+        <span class="char-name">Will</span>
+        <span class="char-dream">Write for Star Wars — even the fan fiction legends.</span>
+      </button>
+      <button type="button" class="char-card" data-character="martha">
+        <img src="assets/game/Martha-playing-piece.png" alt="Martha">
+        <span class="char-name">Martha</span>
+        <span class="char-dream">A speaking tour across the US.</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Picking a character here stores it exactly the way game.html's own
+    // select screen does, flags that the pick just happened on THIS page
+    // (so game.html knows to skip straight to the dream screen instead of
+    // showing its own select screen again), then hands off to game.html.
+    (function () {
+      document.querySelectorAll('#shop-char-select .char-card').forEach(function (card) {
+        card.addEventListener('click', function () {
+          var key = card.getAttribute('data-character');
+          localStorage.setItem('gameCharacter', key);
+          localStorage.removeItem('gameSquare');
+          localStorage.removeItem('pendingRoll');
+          localStorage.removeItem('gameLoseTurn');
+          localStorage.removeItem('doubtSquare');
+          localStorage.removeItem('pendingDoubtRoll');
+          localStorage.setItem('gameSelectedFromShop', 'true');
+          window.location.href = 'game.html';
+        });
+      });
+    })();
+  </script>
+
+  <!-- PLACEHOLDER COPY note (still applies to the pledging-info text
+       above, near "Choose Your Character"): replace with the final
+       pledge policy before launch — exact refund/no-refund terms if a
+       product doesn't hit its funding threshold, and a real expected
+       update cadence (e.g. "monthly"). -->
 </div>
 
 <div class="support-strip" id="stories">
@@ -1386,7 +1730,7 @@
     <a href="https://x.com/watchfirstplace" aria-label="X (Twitter)" target="_blank" rel="noopener noreferrer">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.9 2.9h3.1l-6.8 7.8L23 21.1h-6.3l-4.9-6.4-5.6 6.4H2.9l7.3-8.3L2 2.9h6.4l4.5 5.9zm-1.1 16.4h1.7L7.3 4.6H5.5z"/></svg>
     </a>
-    <a href="https://youtube.com/" aria-label="YouTube" target="_blank" rel="noopener">
+    <a href="https://youtube.com/@watchfirstplace" aria-label="YouTube" target="_blank" rel="noopener noreferrer">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 12s0-3.6-.45-5.3a2.9 2.9 0 0 0-2-2C18.9 4.2 12 4.2 12 4.2s-6.9 0-8.55.5a2.9 2.9 0 0 0-2 2C1 8.4 1 12 1 12s0 3.6.45 5.3a2.9 2.9 0 0 0 2 2c1.65.5 8.55.5 8.55.5s6.9 0 8.55-.5a2.9 2.9 0 0 0 2-2C23 15.6 23 12 23 12zM9.7 15.5v-7l6.1 3.5z"/></svg>
     </a>
   </div>

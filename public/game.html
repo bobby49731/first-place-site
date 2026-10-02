@@ -800,7 +800,7 @@
     <img src="assets/apple-touch-icon.png" alt="FIRST PLACE ribbon logo">
     <span>FIRST PLACE</span>
   </a>
-  <a href="index.html" class="game-home">← Home</a>
+  <a href="shop.html" class="game-home">← Home</a>
 </header>
 
 <div class="game-wrap">
@@ -1521,6 +1521,7 @@
     localStorage.removeItem('pendingDoubtRoll');
     localStorage.removeItem('doubtIntroSeen');
     localStorage.removeItem('doubtLineIndex');
+    localStorage.removeItem('gameSelectedFromShop');
   }
 
   // ---------- Screen 1: character select ----------
@@ -2386,6 +2387,12 @@
   // (see the catch-up line in showDoubtVoice) rather than left silent.
   var CATCH_UP_GAP_THRESHOLD = 6;
 
+  // Deliberate pause between the player's own first-move reveal card
+  // closing and Doubt's first-time introduction card appearing, so the
+  // two never visually compete for the same screen space right at the
+  // start of the game.
+  var DOUBT_FIRST_INTRO_DELAY_MS = 500;
+
   // ---------- The Doubt: rolls paired with the player (see the shared
   // click handler above), then moves once the player's landing type is
   // known — his own die roll plus setback/connection modifiers, all
@@ -2433,7 +2440,19 @@
 
     if (isFirstDoubtMove) {
       localStorage.setItem('doubtIntroSeen', 'true');
-      showDoubtCard('intro', doMove);
+      // Sequencing only — doMove() (the actual first-turn movement,
+      // unchanged) still runs exactly the same way once this card is
+      // dismissed. This is purely about not letting Doubt's dramatic
+      // first entrance compete on screen with the player's own just-
+      // landed reveal card: by the time resolveDoubtTurn runs, that
+      // card is already closed, but give it one explicit beat of clear
+      // screen before Doubt's card takes over, rather than chaining
+      // straight off whatever incidental delay the landing's own
+      // resolution (bonus Roomie, Connection card, etc.) happened to
+      // leave behind.
+      window.setTimeout(function () {
+        showDoubtCard('intro', doMove);
+      }, DOUBT_FIRST_INTRO_DELAY_MS);
     } else {
       doMove();
     }
@@ -2935,6 +2954,13 @@
   var storedPendingRoll = localStorage.getItem('pendingRoll');
   var confirmed = localStorage.getItem('hasEnteredEmail') === 'true';
 
+  // Set by the shop page's own character-select cards, and only ever
+  // meant to survive the single hop from there to here — consume it
+  // immediately so a later reload of /game falls back to the normal
+  // "already picked, skip straight to staging" behavior below.
+  var justSelectedFromShop = localStorage.getItem('gameSelectedFromShop') === 'true';
+  localStorage.removeItem('gameSelectedFromShop');
+
   if (!storedCharacter) {
     showScreen('select');
   } else if (storedSquare) {
@@ -2944,6 +2970,10 @@
     // was already confirmed elsewhere) — finish the move that was
     // waiting on the gate.
     completeOpeningMove();
+  } else if (justSelectedFromShop) {
+    // Same beat as picking a character card on this page directly:
+    // dream/objective screen first, then staging once they continue.
+    showDreamScreen(storedCharacter);
   } else {
     enterStaging();
   }
